@@ -3,6 +3,15 @@ module solver
   use oacc_params
   implicit none
 
+  real(dp) :: rl, pl, ul, vl, wl, cl, bl, al
+  real(dp) :: rr, pr, ur, vr, wr, cr, br, ar
+  
+  real(dp) :: entho, a, sgnm, ploc, proc
+  real(dp) :: ecinl, emagl, etotl, ptotl, vdotbl, el, cfastl, calfvenl, rcl
+  real(dp) :: ecinr, emagr, etotr, ptotr, vdotbr, er, cfastr, calfvenr, rcr
+
+  !$acc declare create(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
+
 contains
   subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
     use variables, only: dt, ds, dv, x, y
@@ -15,13 +24,26 @@ contains
     real(dp), dimension(:,:,:), allocatable :: rgstar, ugstar, vgstar, wgstar
     real(dp), dimension(:,:,:), allocatable :: bgstar, cgstar, pgstar
     real(dp) :: bn_mean
-    real(dp) :: rl, pl, ul, vl, wl, cl, bl, al
-    real(dp) :: rr, pr, ur, vr, wr, cr, br, ar
+    !real(dp) :: rl, pl, ul, vl, wl, cl, bl, al
+    !real(dp) :: rr, pr, ur, vr, wr, cr, br, ar
     real(dp) :: ro, uo, vo, wo, bo, co, ptoto, pressure
     real(dp) :: cotanxc, shear, xL, Ekin, Emag, Etot
     integer  :: i, j, k, idim, im, jm, km, ii, ji, ki, ioffset, joffset, koffset
     integer  :: ln, lt1, lt2, bn, bt1, bt2, ihip, jhip, khip
     integer  :: ilo, ihi, jlo, jhi, klo, khi
+
+    real(dp) :: sl, sr, sal, sar
+    !real(dp) :: entho, a, sgnm, ploc, proc
+    !real(dp) :: ecinl, emagl, etotl, ptotl, vdotbl, el, cfastl, calfvenl, rcl
+    !real(dp) :: ecinr, emagr, etotr, ptotr, vdotbr, er, cfastr, calfvenr, rcr
+    real(dp) :: rstarl, vstarl, wstarl, bstarl, cstarl, vdotbstarl
+    real(dp) :: rstarr, vstarr, wstarr, bstarr, cstarr, vdotbstarr
+    real(dp) :: sqrrstarl, etotstarl, etotstarstarl
+    real(dp) :: sqrrstarr, etotstarr, etotstarstarr
+    real(dp) :: ustar, ptotstar, estar, vstarstar, wstarstar, bstarstar
+    real(dp) :: cstarstar, vdotbstarstar
+    real(dp) :: etoto, vdotbo
+    real(dp) :: c2, b2, d2, cf
 
   if (verbose) print*, '> Entering riemann_hlld'
 
@@ -136,7 +158,7 @@ contains
 #endif
                  
                  ! left variables
-                 call left_var(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
+                 call left_var!(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
                  !ecinl  = half*(ul*ul + vl*vl + wl*wl)*rl
                  !emagl  = half*(a*a + bl*bl + cl*cl)
                  !etotl  = ploc*entho + ecinl + emagl
@@ -734,12 +756,12 @@ contains
   !  return
   !end subroutine hlld
 
-  subroutine left_var(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
+  subroutine left_var!(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
     !$acc routine
     implicit none
 
-    real(dp), intent(in) :: rl, ul, vl, wl, cl, bl, entho, a, ploc
-    real(dp), intent(out) :: ecinl, emagl, etotl, ptotl, vdotbl
+    !real(dp), intent(in) :: rl, ul, vl, wl, cl, bl, entho, a, ploc
+    !real(dp), intent(out) :: ecinl, emagl, etotl, ptotl, vdotbl
 
     ! left variables
     ecinl  = half*(ul*ul + vl*vl + wl*wl)*rl
