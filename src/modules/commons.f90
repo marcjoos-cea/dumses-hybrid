@@ -82,6 +82,7 @@ module params
   integer, parameter :: iA=6   !< magnetic field index (first component) 
   integer, parameter :: iB=7   !< magnetic field index (second component)
   integer, parameter :: iC=8   !< magnetic field index (third component) 
+  !$acc declare create(iu1, iu2, ju1, ju2, ku1, ku2)
 
   ! Size of hydro kernel
   integer, parameter :: nghost=3 !< number of ghost cells
@@ -146,7 +147,8 @@ module params
   real(dp) :: ciso=0.d0         !< isothermal sound speed
   real(dp) :: gamma=5.d0/3.d0   !< ratio of specific heats \f$ \gamma \f$
   logical  :: rhs=.false.       !< .true. if there is a non-zero source term
-   
+  !$acc declare create(gamma)
+
   ! Mesh parameters
   real(dp) :: dx !< resolution in x-direction
   real(dp) :: dy !< resolution in y-direction
