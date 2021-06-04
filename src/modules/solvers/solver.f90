@@ -80,15 +80,15 @@ contains
         klo = kf1          ; khi = kf2
         ioffset = 0; joffset = 0; koffset = 1
      endif
-     !$acc kernels loop
+     !$acc parallel loop private(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
      !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(bn_mean, im, jm, km, shear) &
      !$OMP PRIVATE(Ekin, Emag, Etot, rl, pl, ul, vl, wl, cl, bl, al, rr, pr) &
      !$OMP PRIVATE(ur, vr, wr, cr, br, ar, ro, uo, vo, wo, bo, co, ptoto)
 
      do k = klo, khi
-        !$acc loop vector(blocky_solver)
+        !!$acc loop vector(blocky_solver)
         do j = jlo, jhi
-           !$acc loop vector(blockx_solver)
+           !!$acc loop vector(blockx_solver)
            do i = ilo, ihi
               im = i - ioffset
               jm = j - joffset
