@@ -147,7 +147,7 @@ module params
   real(dp) :: ciso=0.d0         !< isothermal sound speed
   real(dp) :: gamma=5.d0/3.d0   !< ratio of specific heats \f$ \gamma \f$
   logical  :: rhs=.false.       !< .true. if there is a non-zero source term
-  !!$acc declare create(gamma)
+  !$acc declare copyin(gamma)
 
   ! Mesh parameters
   real(dp) :: dx !< resolution in x-direction
@@ -209,6 +209,8 @@ module variables
   ! Time variables
   real(dp) :: dt   !< timestep
   real(dp) :: time !< time
+
+  !$acc declare copyin(dt)
 
   ! Output variables
   integer :: ndump !< # of the current output

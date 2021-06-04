@@ -2,12 +2,10 @@
 !> \file solver_magnetic.f90
 !! \brief
 !! \b DUMSES-Hybrid:
-!! This is Riemann magnetic solver subroutines. This file cannot be compiled as 
-!! is, it needs to be preprocessed with the DUMSES preprocessor. 
-!! riemann_magnetic subroutine is a global_template for solver, and the other 
-!! subroutines are solver_template.
+!! This is Riemann magnetic solver module. 
+!! riemann_solver_magnetic subroutine calls solvers contained in other subroutines.
 !! \details
-!! Contains riemann_magnetic(), upwind(), llf(), hll(), hlld(), acoustic(),
+!! Contains riemann_solver_magnetic(), llf(), hlld(), upwind(), hllf(), hlla()
 !! athena_roe(), mhd_eigenvalues(), roe_eigenvalues()
 !! \author
 !! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
@@ -19,16 +17,49 @@
 !! <http://www.gnu.org/licenses/>
 !! \date
 !! \b created:          01-12-2014 
-!! \b last \b modified: 04-28-2015
+!! \b last \b modified: 24-06-2021
 !<
+!===============================================================================
+
+module solver_magnetic
+  use params
+  use oacc_params
+
+  real(dp) :: rLL, rLR, rRL, rRR, pLL, pLR, pRL, pRR, uLL, uLR, uRL, uRR
+  real(dp) :: vLL, vLR, vRL, vRR, ALL, ALR, ARL, ARR, BLL, BLR, BRL, BRR
+  real(dp) :: CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR
+
+  !$acc declare create( rLL, rLR, rRL, rRR, pLL, pLR, pRL, pRR, uLL, uLR, uRL, uRR, &
+  !$acc &               vLL, vLR, vRL, vRR, ALL, ALR, ARL, ARR, BLL, BLR, BRL, BRR, &
+  !$acc &               CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR)
+
+contains
+
+subroutine solver_magnetic_utils(qLL, qLR, qRL, qRR)
+  !$acc routine seq
+  implicit none
+
+  real(dp), dimension(nvar), intent(in) :: qLL, qRL, qLR, qRR
+
+  rLL = qLL(1); uLL = qLL(3); ALL = qLL(5); CLL = qLL(7)
+  rRL = qRL(1); uRL = qRL(3); ARL = qRL(5); CRL = qRL(7)
+  rLR = qLR(1); uLR = qLR(3); ALR = qLR(5); CLR = qLR(7)
+  rRR = qRR(1); uRR = qRR(3); ARR = qRR(5); CRR = qRR(7)
+                                                       
+  pLL = qLL(2); vLL = qLL(4); BLL = qLL(6); ELL = qLL(8)
+  pRL = qRL(2); vRL = qRL(4); BRL = qRL(6); ERL = qRL(8)
+  pLR = qLR(2); vLR = qLR(4); BLR = qLR(6); ELR = qLR(8)
+  pRR = qRR(2); vRR = qRR(4); BRR = qRR(6); ERR = qRR(8)
+
+  return
+end subroutine solver_magnetic_utils
+
+
 !===============================================================================
 !> 2D Riemann solver to compute EMF at cell edges
 !===============================================================================
-!$py global_template riemann_magnetic
-subroutine riemann_magnetic(qRT, qRB, qLT, qLB, emf, idim)
-  use params
+subroutine riemann_solver_magnetic(qRT, qRB, qLT, qLB, emf, idim)
   use variables, only: x, dt
-  use oacc_params
   implicit none
 
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,3), intent(in) :: qRT, qRB
@@ -37,9 +68,8 @@ subroutine riemann_magnetic(qRT, qRB, qLT, qLB, emf, idim)
   integer, intent(in) :: idim
 
   ! local variables
-  real(dp) :: rLL, rLR, rRL, rRR, pLL, pLR, pRL, pRR, uLL, uLR, uRL, uRR
-  real(dp) :: vLL, vLR, vRL, vRR, ALL, ALR, ARL, ARR, BLL, BLR, BRL, BRR
-  real(dp) :: CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR
+  real(dp), dimension(nvar) :: qLL, qRL, qLR, qRR
+
   real(dp) :: emf_tmp, shear
   integer  :: i, j, k
   integer  :: ilo, ihi, jlo, jhi, klo, khi
@@ -49,7 +79,7 @@ subroutine riemann_magnetic(qRT, qRB, qLT, qLB, emf, idim)
   integer  :: krtoffset, krboffset, kltoffset, klboffset
   integer  :: irt, irb, ilt, ilb, jrt, jrb, jlt, jlb, krt, krb, klt, klb
 
-  !$py begin_statement
+  if (verbose) print*, '> Entering riemann_magnetic_hlld'
 
   if(idim == 1) then
      ilo = min(1, iu1+3); ihi = max(1, iu2-3)
@@ -80,15 +110,25 @@ subroutine riemann_magnetic(qRT, qRB, qLT, qLB, emf, idim)
      krtoffset = 0; krboffset = 0; kltoffset = 0; klboffset = 0
   endif
 
-  !$acc kernels loop
+  !$acc kernels loop private(qLL, qRL, qLR, qRR) independent
   !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(irt, ilt, jrt, jlt, krt, klt) &
   !$OMP PRIVATE(rLL, rLR, rRL, rRR, pLL, pLR, pRL, pRR, uLL, uLR, uRL, uRR) &
   !$OMP PRIVATE(vLL, vLR, vRL, vRR, ALL, ALR, ARL, ARR, BLL, BLR, BRL, BRR) &
-  !$OMP PRIVATE(CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR, emf_tmp, shear)
+  !$OMP PRIVATE(CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR, emf_tmp, shear) &
+  !$OMP PRIVATE( SL, SR, SB, ST, SAL, SAR, SAT, SAB, E, c2) &
+  !$OMP PRIVATE( b2, d2, cLLx, cRLx, cLRx, cRRx, cLLy, cRLy, cLRy, cRRy) &
+  !$OMP PRIVATE( cfastLLx, cfastRLx, cfastLRx, cfastRRx, cfastLLy, cfastRLy, cfastLRy, cfastRRy, calfvenR, calfvenL) &
+  !$OMP PRIVATE( calfvenT, calfvenB, vLLx, vRLx, vLRx, vRRx, vLLy, vRLy, vLRy, vRRy) &
+  !$OMP PRIVATE( PtotLL, PtotLR, PtotRL, PtotRR, rcLLx, rcLRx, rcRLx, rcRRx, rcLLy, rcLRy) &
+  !$OMP PRIVATE( rcRLy, rcRRy, ustar, vstar, rstarLLx, rstarLRx, rstarRLx, rstarRRx, rstarLLy, rstarLRy) &
+  !$OMP PRIVATE( rstarRLy, rstarRRy, rstarLL, rstarLR, rstarRL, rstarRR, AstarLL, AstarLR, AstarRL, AstarRR) &
+  !$OMP PRIVATE( BstarLL, BstarLR, BstarRL, BstarRR, EstarLLx, EstarLRx, EstarRLx, EstarRRx, EstarLLy, EstarLRy) &
+  !$OMP PRIVATE( EstarRLy, EstarRRy, EstarLL, EstarLR, EstarRL, EstarRR, AstarT, AstarB, BstarR, BstarL) &
+  !$OMP PRIVATE( SLustar, SRustar, STvstar, SBvstar, SARSAL, SATSAB, sqrtrstarLL, sqrtrstarRR, sqrtrstarRL, sqrtrstarLR)
   do k = klo, khi
-     !$acc loop vector(blocky_solver_mag)
+     !$acc loop vector(blocky_solver_mag) independent
      do j = jlo, jhi
-        !$acc loop vector(blockx_solver_mag)
+        !$acc loop vector(blockx_solver_mag) independent
         do i = ilo, ihi
            irt = i + irtoffset; irb = i + irboffset
            ilt = i + iltoffset; ilb = i + ilboffset
@@ -97,62 +137,83 @@ subroutine riemann_magnetic(qRT, qRB, qLT, qLB, emf, idim)
            krt = k + krtoffset; krb = k + krboffset
            klt = k + kltoffset; klb = k + klboffset
 
-           ! State vectors; 1=LL, 2=RL, 3=LR, 4=RR
-           rLL = qRT(irt,jrt,krt,1,idim)
-           rRL = qLT(ilt,jlt,klt,1,idim)
-           rLR = qRB(irb,jrb,krb,1,idim)
-           rRR = qLB(ilb,jlb,klb,1,idim)
+            ! State vectors; 1=LL, 2=RL, 3=LR, 4=RR
+           qLL(1) = qRT(irt,jrt,krt,1,idim)
+           qRL(1) = qLT(ilt,jlt,klt,1,idim)
+           qLR(1) = qRB(irb,jrb,krb,1,idim)
+           qRR(1) = qLB(ilb,jlb,klb,1,idim)
            
 #if ISO == 1
-           pLL = rLL*ciso**2
-           pRL = rRL*ciso**2
-           pLR = rLR*ciso**2
-           pRR = rRR*ciso**2
+           qLL(2) = qLL(1)*ciso**2
+           qRL(2) = qRL(1)*ciso**2
+           qLR(2) = qLR(1)*ciso**2
+           qRR(2) = qRR(1)*ciso**2
 #else
-           pLL = qRT(irt,jrt,krt,5,idim)
-           pRL = qLT(ilt,jlt,klt,5,idim)
-           pLR = qRB(irb,jrb,krb,5,idim)
-           pRR = qLB(ilb,jlb,klb,5,idim)
+           qLL(2) = qRT(irt,jrt,krt,5,idim)
+           qRL(2) = qLT(ilt,jlt,klt,5,idim)
+           qLR(2) = qRB(irb,jrb,krb,5,idim)
+           qRR(2) = qLB(ilb,jlb,klb,5,idim)
 #endif
            
            ! First parallel velocity 
-           uLL = qRT(irt,jrt,krt,lt1,idim)
-           uRL = qLT(ilt,jlt,klt,lt1,idim)
-           uLR = qRB(irb,jrb,krb,lt1,idim)
-           uRR = qLB(ilb,jlb,klb,lt1,idim)
+           qLL(3) = qRT(irt,jrt,krt,lt1,idim)
+           qRL(3) = qLT(ilt,jlt,klt,lt1,idim)
+           qLR(3) = qRB(irb,jrb,krb,lt1,idim)
+           qRR(3) = qLB(ilb,jlb,klb,lt1,idim)
            
            ! Second parallel velocity 
-           vLL = qRT(irt,jrt,krt,lt2,idim)
-           vRL = qLT(ilt,jlt,klt,lt2,idim)
-           vLR = qRB(irb,jrb,krb,lt2,idim)
-           vRR = qLB(ilb,jlb,klb,lt2,idim)
+           qLL(4) = qRT(irt,jrt,krt,lt2,idim)
+           qRL(4) = qLT(ilt,jlt,klt,lt2,idim)
+           qLR(4) = qRB(irb,jrb,krb,lt2,idim)
+           qRR(4) = qLB(ilb,jlb,klb,lt2,idim)
    
            ! First parallel magnetic field (enforce continuity)
-           ALL = half*(qRT(irt,jrt,krt,bt1,idim) + qLT(ilt,jlt,klt,bt1,idim))
-           ARL = half*(qRT(irt,jrt,krt,bt1,idim) + qLT(ilt,jlt,klt,bt1,idim))
-           ALR = half*(qRB(irb,jrb,krb,bt1,idim) + qLB(ilb,jlb,klb,bt1,idim))
-           ARR = half*(qRB(irb,jrb,krb,bt1,idim) + qLB(ilb,jlb,klb,bt1,idim))
+           qLL(5) = half*(qRT(irt,jrt,krt,bt1,idim) + qLT(ilt,jlt,klt,bt1,idim))
+           qRL(5) = half*(qRT(irt,jrt,krt,bt1,idim) + qLT(ilt,jlt,klt,bt1,idim))
+           qLR(5) = half*(qRB(irb,jrb,krb,bt1,idim) + qLB(ilb,jlb,klb,bt1,idim))
+           qRR(5) = half*(qRB(irb,jrb,krb,bt1,idim) + qLB(ilb,jlb,klb,bt1,idim))
    
            ! Second parallel magnetic field (enforce continuity)
-           BLL = half*(qRT(irt,jrt,krt,bt2,idim) + qRB(irb,jrb,krb,bt2,idim))
-           BRL = half*(qLT(ilt,jlt,klt,bt2,idim) + qLB(ilb,jlb,klb,bt2,idim))
-           BLR = half*(qRT(irt,jrt,krt,bt2,idim) + qRB(irb,jrb,krb,bt2,idim))
-           BRR = half*(qLT(ilt,jlt,klt,bt2,idim) + qLB(ilb,jlb,klb,bt2,idim))
+           qLL(6) = half*(qRT(irt,jrt,krt,bt2,idim) + qRB(irb,jrb,krb,bt2,idim))
+           qRL(6) = half*(qLT(ilt,jlt,klt,bt2,idim) + qLB(ilb,jlb,klb,bt2,idim))
+           qLR(6) = half*(qRT(irt,jrt,krt,bt2,idim) + qRB(irb,jrb,krb,bt2,idim))
+           qRR(6) = half*(qLT(ilt,jlt,klt,bt2,idim) + qLB(ilb,jlb,klb,bt2,idim))
    
            ! Orthogonal magnetic Field
-           CLL = qRT(irt,jrt,krt,bn,idim)
-           CRL = qLT(ilt,jlt,klt,bn,idim)
-           CLR = qRB(irb,jrb,krb,bn,idim)
-           CRR = qLB(ilb,jlb,klb,bn,idim)
+           qLL(7) = qRT(irt,jrt,krt,bn,idim)
+           qRL(7) = qLT(ilt,jlt,klt,bn,idim)
+           qLR(7) = qRB(irb,jrb,krb,bn,idim)
+           qRR(7) = qLB(ilb,jlb,klb,bn,idim)
    
            ! Compute final fluxes
            ! vx*by - vy*bx at the four edge centers
-           ELL = uLL*BLL - vLL*ALL
-           ERL = uRL*BRL - vRL*ARL
-           ELR = uLR*BLR - vLR*ALR
-           ERR = uRR*BRR - vRR*ARR
+           qLL(8) = qLL(3)*qLL(6) - qLL(4)*qLL(5)
+           qRL(8) = qRL(3)*qRL(6) - qRL(4)*qRL(5)
+           qLR(8) = qLR(3)*qLR(6) - qLR(4)*qLR(5)
+           qRR(8) = qRR(3)*qRR(6) - qRR(4)*qRR(5)
+           
 
-           !$py insert_solver
+           if (iriemann2d == illf) then
+              call llf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           else if (iriemann2d == ihlld) then 
+              call hlld(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           else if (iriemann2d == iupwind) then
+              call upwind(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !else if (iriemann2d == ihllf) then
+           !   call hllf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           else if (iriemann2d == ihlla) then
+              call hlla(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !else if (iriemann2d == iathena_roe2d) then
+           !   call athena_roe2d(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !else if (iriemann2d == ilax_friedrich) then
+           !   call lax_friedrich(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !else if (iriemann2d == iathena_roe) then
+           !   call athena_roe(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !else if (iriemann2d == imhd_eigenvalues) then
+           !   call mhd_eigenvalues(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !else if (iriemann2d == iroe_eigenvalues) then
+           !   call roe_eigenvalues(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           end if
 
            ! Upwind solver in case of the shearing box
 #if GEOM == CARTESIAN
@@ -182,13 +243,139 @@ subroutine riemann_magnetic(qRT, qRB, qLT, qLB, emf, idim)
   !$OMP END PARALLEL DO
 
   return
-end subroutine riemann_magnetic
-!$py global_template riemann_magnetic
+end subroutine riemann_solver_magnetic
+
+
+!===============================================================================
+!> 2D Lax-Friedrich Riemann (LLF) solver
+!===============================================================================
+subroutine llf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+  !$acc routine seq
+  implicit none
+
+  real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
+  real(dp), intent(in), value :: dt
+  real(dp), intent(out) :: emf_tmp
+
+  real(dp) :: E, rl, pl, ul, al, bl, cl, rr, pr, ur, ar, br, cr, ploc, proc
+  real(dp) :: c2, b2, d2, cf, vleft, vright, vel_info
+  real(dp) :: flux_x, flux_y
+
+  call solver_magnetic_utils(qLL, qLR, qRL, qRR)
+
+  E = forth*(ELL + ERL + ELR + ERR)
+
+  ! Call the solver in the first direction
+  ! Left state
+  rl = half*(rLL + rLR)
+  pl = half*(pLL + pLR)
+  ul = half*(uLL + uLR)
+  al = half*(ALL + ALR)
+  bl = half*(BLL + BLR)
+  cl = half*(CLL + CLR)
+
+  ! Right state
+  rr = half*(rRR + rRL)
+  pr = half*(pRR + pRL)
+  ur = half*(uRR + uRL)
+  ar = half*(ARR + ARL)
+  br = half*(BRR + BRL)
+  cr = half*(CRR + CRL)
+
+#if ISO == 1
+  ploc = rl*ciso**2
+  proc = rr*ciso**2
+#else
+  ploc = pl
+  proc = pr
+#endif  
+              
+  ! enforce continuity of normal component
+  al = half*(al + ar)
+  ar = al
+              
+  ! left variables
+  c2 = gamma*ploc/rl
+  b2 = al*al + bl*bl + cl*cl
+  d2 = half*(c2 + b2/rl)
+  cf = sqrt(d2 + sqrt(d2**2 - c2*al*al/rl))
+  vleft = cf + abs(ul)
+
+  ! right variables
+  c2 = gamma*proc/rr
+  b2 = ar*ar + br*br + cr*cr
+  d2 = half*(c2 + b2/rr)
+  cf = sqrt(d2 + sqrt(d2**2 - c2*ar*ar/rr))
+  vright = cf + abs(ur)
+
+  ! compute the godunov flux
+  vel_info = max(vleft, vright)
+  flux_x   = -vel_info*half*(br - bl)
+
+  ! Call the solver in the second direction
+  ! Left state
+  rl = half*(rLL + rRL)
+  pl = half*(pLL + pRL)
+  ul = half*(vLL + vRL)
+  al = half*(BLL + BRL)
+  bl = half*(ALL + ARL)
+  cl = half*(CLL + CRL)
+
+  ! Right state
+  rr = half*(rRR + rLR)
+  pr = half*(pRR + pLR)
+  ur = half*(vRR + vLR)
+  ar = half*(BRR + BLR)
+  br = half*(ARR + ALR)
+  cr = half*(CRR + CLR)
+
+#if ISO == 1
+  ploc = rl*ciso**2
+  proc = rr*ciso**2
+#else
+  ploc = pl
+  proc = pr
+#endif  
+              
+  ! enforce continuity of normal component
+  al = half*(al + ar)
+  ar = al
+              
+  ! left variables
+  c2 = gamma*ploc/rl
+  b2 = al*al + bl*bl + cl*cl
+  d2 = half*(c2 + b2/rl)
+  cf = sqrt(d2 + sqrt(d2**2 - c2*al*al/rl))
+  vleft = cf + abs(ul)
+
+  ! right variables
+  c2 = gamma*proc/rr
+  b2 = ar*ar + br*br + cr*cr
+  d2 = half*(c2 + b2/rr)
+  cf = sqrt(d2 + sqrt(d2**2 - c2*ar*ar/rr))
+  vright = cf + abs(ur)
+
+  ! compute the godunov flux
+  vel_info = max(vleft, vright)
+  flux_y   = - vel_info*half*(br - bl)
+
+  emf_tmp = E + (flux_x - flux_y)
+  emf_tmp = emf_tmp*dt
+
+  return
+end subroutine llf
+
+
 !===============================================================================
 !> 2D HLLD Riemann solver
 !===============================================================================
-!$py solver_template hlld
-subroutine hlld
+subroutine hlld(qLL, qRL, qLR, qRR, dt, emf_tmp)
+  !$acc routine seq
+  implicit none
+
+  real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
+  real(dp), intent(in), value :: dt
+  real(dp), intent(out) :: emf_tmp
 
   real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB, E, c2, b2, d2
   real(dp) :: cLLx, cRLx, cLRx, cRRx, cLLy, cRLy, cLRy, cRRy
@@ -207,6 +394,8 @@ subroutine hlld
   real(dp) :: AstarT, AstarB, BstarR, BstarL
   real(dp) :: SLustar, SRustar, STvstar, SBvstar
   real(dp) :: SARSAL, SATSAB, sqrtrstarLL, sqrtrstarRR, sqrtrstarRL, sqrtrstarLR
+
+  call solver_magnetic_utils(qLL, qLR, qRL, qRR)
 
   ! Compute 4 fast magnetosonic velocity relative to x direction
   c2       = gamma*pLL/rLL
@@ -254,11 +443,6 @@ subroutine hlld
   SR = max(uLL,uLR,uRL,uRR) + max(cfastLLx,cfastLRx,cfastRLx,cfastRRx)
   SB = min(vLL,vLR,vRL,vRR) - max(cfastLLy,cfastLRy,cfastRLy,cfastRRy)
   ST = max(vLL,vLR,vRL,vRR) + max(cfastLLy,cfastLRy,cfastRLy,cfastRRy)
-  
-  ELL = uLL*BLL - vLL*ALL
-  ELR = uLR*BLR - vLR*ALR
-  ERL = uRL*BRL - vRL*ARL
-  ERR = uRR*BRR - vRR*ARR
   
   PtotLL = pLL + half*(ALL*ALL + BLL*BLL + CLL*CLL)
   PtotLR = pLR + half*(ALR*ALR + BLR*BLR + CLR*CLR)
@@ -371,228 +555,23 @@ subroutine hlld
 
   return
 end subroutine hlld
-!$py solver_template hlld
-!===============================================================================
-!> 2D HLLF Riemann solver
-!===============================================================================
-!$py solver_template hllf
-subroutine hllf
 
-  real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB , c2, b2, d2
-  real(dp) :: cfastLLx, cfastRLx, cfastLRx, cfastRRx, cfastLLy, cfastRLy
-  real(dp) :: cfastLRy, cfastRRy
 
-  ! Compute 4 fast magnetosonic velocity relative to x direction
-  c2       = gamma*pLL/rLL
-  b2       = ALL*ALL + BLL*BLL + CLL*CLL
-  d2       = half*(c2 + b2/rLL)
-  cfastLLx = sqrt(d2 + sqrt(d2**2 - c2*ALL*ALL/rLL))
-
-  c2       = gamma*pLR/rLR
-  b2       = ALR*ALR + BLR*BLR + CLR*CLR
-  d2       = half*(c2 + b2/rLR)
-  cfastLRx = sqrt(d2 + sqrt(d2**2 - c2*ALR*ALR/rLR))
-
-  c2       = gamma*pRL/rRL
-  b2       = ARL*ARL + BRL*BRL + CRL*CRL
-  d2       = half*(c2 + b2/rRL)
-  cfastRLx = sqrt(d2 + sqrt(d2**2 - c2*ARL*ARL/rRL))
-
-  c2       = gamma*pRR/rRR
-  b2       = ARR*ARR + BRR*BRR + CRR*CRR
-  d2       = half*(c2 + b2/rRR)
-  cfastRRx = sqrt(d2 + sqrt(d2**2 - c2*ARR*ARR/rRR))
-
-  ! Compute 4 fast magnetosonic velocity relative to y direction
-  c2       = gamma*pLL/rLL
-  b2       = BLL*BLL + ALL*ALL + CLL*CLL
-  d2       = half*(c2 + b2/rLL)
-  cfastLLy = sqrt(d2 + sqrt(d2**2 - c2*BLL*BLL/rLL))
-
-  c2       = gamma*pLR/rLR
-  b2       = BLR*BLR + ALR*ALR + CLR*CLR
-  d2       = half*(c2 + b2/rLR)
-  cfastLRy = sqrt(d2 + sqrt(d2**2 - c2*BLR*BLR/rLR))
-
-  c2       = gamma*pRL/rRL
-  b2       = BRL*BRL + ARL*ARL + CRL*CRL
-  d2       = half*(c2 + b2/rRL)
-  cfastRLy = sqrt(d2 + sqrt(d2**2 - c2*BRL*BRL/rRL))
-
-  c2       = gamma*pRR/rRR
-  b2       = BRR*BRR + ARR*ARR + CRR*CRR
-  d2       = half*(c2 + b2/rRR)
-  cfastRRy = sqrt(d2 + sqrt(d2**2 - c2*BRR*BRR/rRR))
-  
-  SL = min(uLL,uLR,uRL,uRR) - max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc)
-  SR = max(uLL,uLR,uRL,uRR) + max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc)
-  SB = min(vLL,vLR,vRL,vRR) - max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc)
-  ST = max(vLL,vLR,vRL,vRR) + max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc)
-
-  emf_tmp = (SL*SB*ERR - SL*ST*ERL - SR*SB*ELR + SR*ST*ELL) &
-             &  /(SR - SL)/(ST - SB) &
-             & - ST*SB/(ST - SB)*(ARR - ALL) &
-             & + SR*SL/(SR - SL)*(BRR - BLL)
-  emf_tmp = emf_tmp*dt
-
-  return
-end subroutine hllf
-!$py solver_template hllf
-!===============================================================================
-!> 2D HLLA Riemann solver
-!===============================================================================
-!$py solver_template hlla
-subroutine hlla
-
-  real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB 
-  real(dp) :: cfastLLx, cfastRLx, cfastLRx, cfastRRx, cfastLLy, cfastRLy
-  real(dp) :: cfastLRy, cfastRRy
-
-  ! Compute 4 Alfven velocity relative to x direction
-  cfastLLx = sqrt(ALL*ALL/rLL)
-  cfastLRx = sqrt(ALR*ALR/rLR)
-  cfastRLx = sqrt(ARL*ARL/rRL)
-  cfastRRx = sqrt(ARR*ARR/rRR)
-
-  ! Compute 4 Alfven velocity relative to y direction
-  cfastLLy = sqrt(BLL*BLL/rLL)
-  cfastLRy = sqrt(BLR*BLR/rLR)
-  cfastRLy = sqrt(BRL*BRL/rRL)
-  cfastRRy = sqrt(BRR*BRR/rRR)
-  
-  SL = min(min(uLL,uLR,uRL,uRR) - max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc), zero)
-  SR = max(max(uLL,uLR,uRL,uRR) + max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc), zero)
-  SB = min(min(vLL,vLR,vRL,vRR) - max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc), zero)
-  ST = max(max(vLL,vLR,vRL,vRR) + max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc), zero)
-
-  emf_tmp = (SL*SB*ERR - SL*ST*ERL - SR*SB*ELR + SR*ST*ELL) &
-      &  /(SR - SL)/(ST - SB) &
-      & - ST*SB/(ST - SB)*(ARR - ALL) &
-      & + SR*SL/(SR - SL)*(BRR - BLL)
-  emf_tmp = emf_tmp*dt
-
-  return
-end subroutine hlla
-!$py solver_template hlla
-!===============================================================================
-!> 2D Lax-Friedrich Riemann solver
-!===============================================================================
-!$py solver_template llf
-subroutine llf
-
-  real(dp) :: E, rl, pl, ul, al, bl, cl, rr, pr, ur, ar, br, cr, ploc, proc
-  real(dp) :: c2, b2, d2, cf, vleft, vright, vel_info
-  real(dp) :: flux_x, flux_y
-
-  E = forth*(ELL + ERL + ELR + ERR)
-
-  ! Call the solver in the first direction
-  ! Left state
-  rl = half*(rLL + rLR)
-  pl = half*(pLL + pLR)
-  ul = half*(uLL + uLR)
-  al = half*(ALL + ALR)
-  bl = half*(BLL + BLR)
-  cl = half*(CLL + CLR)
-
-  ! Right state
-  rr = half*(rRR + rRL)
-  pr = half*(pRR + pRL)
-  ur = half*(uRR + uRL)
-  ar = half*(ARR + ARL)
-  br = half*(BRR + BRL)
-  cr = half*(CRR + CRL)
-
-#if ISO == 1
-  ploc = rl*ciso**2
-  proc = rr*ciso**2
-#else
-  ploc = pl
-  proc = pr
-#endif  
-              
-  ! enforce continuity of normal component
-  al = half*(al + ar)
-  ar = al
-              
-  ! left variables
-  c2 = gamma*ploc/rl
-  b2 = al*al + bl*bl + cl*cl
-  d2 = half*(c2 + b2/rl)
-  cf = sqrt(d2 + sqrt(d2**2 - c2*al*al/rl))
-  vleft = cf + abs(ul)
-
-  ! right variables
-  c2 = gamma*proc/rr
-  b2 = ar*ar + br*br + cr*cr
-  d2 = half*(c2 + b2/rr)
-  cf = sqrt(d2 + sqrt(d2**2 - c2*ar*ar/rr))
-  vright = cf + abs(ur)
-
-  ! compute the godunov flux
-  vel_info = max(vleft, vright)
-  flux_x   = -vel_info*half*(br - bl)
-
-  ! Call the solver in the second direction
-  ! Left state
-  rl = half*(rLL + rRL)
-  pl = half*(pLL + pRL)
-  ul = half*(vLL + vRL)
-  al = half*(BLL + BRL)
-  bl = half*(ALL + ARL)
-  cl = half*(CLL + CRL)
-
-  ! Right state
-  rr = half*(rRR + rLR)
-  pr = half*(pRR + pLR)
-  ur = half*(vRR + vLR)
-  ar = half*(BRR + BLR)
-  br = half*(ARR + ALR)
-  cr = half*(CRR + CLR)
-
-#if ISO == 1
-  ploc = rl*ciso**2
-  proc = rr*ciso**2
-#else
-  ploc = pl
-  proc = pr
-#endif  
-              
-  ! enforce continuity of normal component
-  al = half*(al + ar)
-  ar = al
-              
-  ! left variables
-  c2 = gamma*ploc/rl
-  b2 = al*al + bl*bl + cl*cl
-  d2 = half*(c2 + b2/rl)
-  cf = sqrt(d2 + sqrt(d2**2 - c2*al*al/rl))
-  vleft = cf + abs(ul)
-
-  ! right variables
-  c2 = gamma*proc/rr
-  b2 = ar*ar + br*br + cr*cr
-  d2 = half*(c2 + b2/rr)
-  cf = sqrt(d2 + sqrt(d2**2 - c2*ar*ar/rr))
-  vright = cf + abs(ur)
-
-  ! compute the godunov flux
-  vel_info = max(vleft, vright)
-  flux_y   = - vel_info*half*(br - bl)
-
-  emf_tmp = E + (flux_x - flux_y)
-  emf_tmp = emf_tmp*dt
-
-  return
-end subroutine llf
-!$py solver_template llf
 !===============================================================================
 !> 2D Upwind Riemann solver
 !===============================================================================
-!$py solver_template upwind
-subroutine upwind
+subroutine upwind(qLL, qRL, qLR, qRR, dt, emf_tmp)
+  !$acc routine seq
+  implicit none
+
+
+  real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
+  real(dp), intent(in), value :: dt
+  real(dp), intent(out) :: emf_tmp
 
   real(dp) :: E, ul, ur, bl, br, vel_info, flux_x, flux_y
+
+  call solver_magnetic_utils(qLL, qLR, qRL, qRR)
 
   E = forth*(ELL + ERL + ELR + ERR)
 
@@ -627,13 +606,139 @@ subroutine upwind
 
   return
 end subroutine upwind
-!$py solver_template upwind
+
+
+!!===============================================================================
+!!> 2D HLLF Riemann solver
+!!===============================================================================
+!subroutine hllf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+!  !$acc routine seq
+!  implicit none
+!
+!  real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
+!  real(dp), intent(in), value :: dt
+!  real(dp), intent(inout) :: emf_tmp
+
+!  real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB , c2, b2, d2
+!  real(dp) :: cfastLLx, cfastRLx, cfastLRx, cfastRRx, cfastLLy, cfastRLy
+!  real(dp) :: cfastLRy, cfastRRy
+
+!  rLL = qLL(1); uLL = qLL(3); ALL = qLL(5); CLL = qLL(7)
+!  rRL = qRL(1); uRL = qRL(3); ARL = qRL(5); CRL = qRL(7)
+!  rLR = qLR(1); uLR = qLR(3); ALR = qLR(5); CLR = qLR(7)
+!  rRR = qRR(1); uRR = qRR(3); ARR = qRR(5); CRR = qRR(7)
+!                                                       
+!  pLL = qLL(2); vLL = qLL(4); BLL = qLL(6); ELL = qLL(8)
+!  pRL = qRL(2); vRL = qRL(4); BRL = qRL(6); ERL = qRL(8)
+!  pLR = qLR(2); vLR = qLR(4); BLR = qLR(6); ELR = qLR(8)
+!  pRR = qRR(2); vRR = qRR(4); BRR = qRR(6); ERR = qRR(8)
+!
+!  ! Compute 4 fast magnetosonic velocity relative to x direction
+!  c2       = gamma*pLL/rLL
+!  b2       = ALL*ALL + BLL*BLL + CLL*CLL
+!  d2       = half*(c2 + b2/rLL)
+!  cfastLLx = sqrt(d2 + sqrt(d2**2 - c2*ALL*ALL/rLL))
+!
+!  c2       = gamma*pLR/rLR
+!  b2       = ALR*ALR + BLR*BLR + CLR*CLR
+!  d2       = half*(c2 + b2/rLR)
+!  cfastLRx = sqrt(d2 + sqrt(d2**2 - c2*ALR*ALR/rLR))
+!
+!  c2       = gamma*pRL/rRL
+!  b2       = ARL*ARL + BRL*BRL + CRL*CRL
+!  d2       = half*(c2 + b2/rRL)
+!  cfastRLx = sqrt(d2 + sqrt(d2**2 - c2*ARL*ARL/rRL))
+!
+!  c2       = gamma*pRR/rRR
+!  b2       = ARR*ARR + BRR*BRR + CRR*CRR
+!  d2       = half*(c2 + b2/rRR)
+!  cfastRRx = sqrt(d2 + sqrt(d2**2 - c2*ARR*ARR/rRR))
+!
+!  ! Compute 4 fast magnetosonic velocity relative to y direction
+!  c2       = gamma*pLL/rLL
+!  b2       = BLL*BLL + ALL*ALL + CLL*CLL
+!  d2       = half*(c2 + b2/rLL)
+!  cfastLLy = sqrt(d2 + sqrt(d2**2 - c2*BLL*BLL/rLL))
+!
+!  c2       = gamma*pLR/rLR
+!  b2       = BLR*BLR + ALR*ALR + CLR*CLR
+!  d2       = half*(c2 + b2/rLR)
+!  cfastLRy = sqrt(d2 + sqrt(d2**2 - c2*BLR*BLR/rLR))
+!
+!  c2       = gamma*pRL/rRL
+!  b2       = BRL*BRL + ARL*ARL + CRL*CRL
+!  d2       = half*(c2 + b2/rRL)
+!  cfastRLy = sqrt(d2 + sqrt(d2**2 - c2*BRL*BRL/rRL))
+!
+!  c2       = gamma*pRR/rRR
+!  b2       = BRR*BRR + ARR*ARR + CRR*CRR
+!  d2       = half*(c2 + b2/rRR)
+!  cfastRRy = sqrt(d2 + sqrt(d2**2 - c2*BRR*BRR/rRR))
+!  
+!  SL = min(uLL,uLR,uRL,uRR) - max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc)
+!  SR = max(uLL,uLR,uRL,uRR) + max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc)
+!  SB = min(vLL,vLR,vRL,vRR) - max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc)
+!  ST = max(vLL,vLR,vRL,vRR) + max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc)
+!
+!  emf_tmp = (SL*SB*ERR - SL*ST*ERL - SR*SB*ELR + SR*ST*ELL) &
+!             &  /(SR - SL)/(ST - SB) &
+!             & - ST*SB/(ST - SB)*(ARR - ALL) &
+!             & + SR*SL/(SR - SL)*(BRR - BLL)
+!  emf_tmp = emf_tmp*dt
+
+!  return
+!end subroutine hllf
+
+
+!===============================================================================
+!> 2D HLLA Riemann solver
+!===============================================================================
+subroutine hlla(qLL, qRL, qLR, qRR, dt, emf_tmp)
+  !$acc routine seq
+  implicit none
+
+  real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
+  real(dp), intent(in), value :: dt
+  real(dp), intent(out) :: emf_tmp
+
+  real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB 
+  real(dp) :: cfastLLx, cfastRLx, cfastLRx, cfastRRx, cfastLLy, cfastRLy
+  real(dp) :: cfastLRy, cfastRRy
+
+  call solver_magnetic_utils(qLL, qLR, qRL, qRR)
+
+  ! Compute 4 Alfven velocity relative to x direction
+  cfastLLx = sqrt(ALL*ALL/rLL)
+  cfastLRx = sqrt(ALR*ALR/rLR)
+  cfastRLx = sqrt(ARL*ARL/rRL)
+  cfastRRx = sqrt(ARR*ARR/rRR)
+
+  ! Compute 4 Alfven velocity relative to y direction
+  cfastLLy = sqrt(BLL*BLL/rLL)
+  cfastLRy = sqrt(BLR*BLR/rLR)
+  cfastRLy = sqrt(BRL*BRL/rRL)
+  cfastRRy = sqrt(BRR*BRR/rRR)
+  
+  SL = min(min(uLL,uLR,uRL,uRR) - max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc), zero)
+  SR = max(max(uLL,uLR,uRL,uRR) + max(cfastLLx,cfastLRx,cfastRLx,cfastRRx,smallc), zero)
+  SB = min(min(vLL,vLR,vRL,vRR) - max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc), zero)
+  ST = max(max(vLL,vLR,vRL,vRR) + max(cfastLLy,cfastLRy,cfastRLy,cfastRRy,smallc), zero)
+
+  emf_tmp = (SL*SB*ERR - SL*ST*ERL - SR*SB*ELR + SR*ST*ELL) &
+      &  /(SR - SL)/(ST - SB) &
+      & - ST*SB/(ST - SB)*(ARR - ALL) &
+      & + SR*SL/(SR - SL)*(BRR - BLL)
+  emf_tmp = emf_tmp*dt
+
+  return
+end subroutine hlla
+
+
 !!===============================================================================
 !!> 2D Athena-Roe Riemann solver
 !!===============================================================================
 !subroutine athena_roe2d(qc, emf)
-!  use params
-!  use variables, only: dt
+!  !$acc routine seq
 !  implicit none
 !
 !  real(dp), dimension(4,nvar+1), intent(in) :: qc
@@ -714,52 +819,13 @@ end subroutine upwind
 !
 !  return
 !end subroutine athena_roe2d
+
+
 !!===============================================================================
-!!> Updwind Riemann solver
-!!===============================================================================
-!subroutine upwind(qleft, qright, flux, zero_flux)
-!  use params
-!  implicit none
-!
-!  real(dp), dimension(nvar) :: flux
-!  real(dp), dimension(nvar) :: qleft, qright
-!  real(dp), dimension(nvar) :: fleft, fright, cvarleft, cvarright, cvardiff
-!  real(dp) :: zero_flux
-!  real(dp) :: rho, p, vn, vt1, vt2, bn, bt1, bt2, vleft
-!
-!  ! Find the largest eigenvalue in the normal direction to the interface
-!  ! and compute MHD flux
-!  rho = qleft(1); p   = qleft(2)
-!  vn  = qleft(3); vt1 = qleft(5) ; vt2 = qleft(7)
-!  bn  = half*(qleft(4)+qright(4)); bt1 = qleft(6); bt2 = qleft(8)
-!
-!  call comp_mhd_flux(rho, p, vn, vt1, vt2, bn, bt1, bt2, cvarleft, fleft)
-!  
-!  rho = qright(1); p   = qright(2)
-!  vn  = qright(3); vt1 = qright(5); vt2 = qright(7)
-!  bn  = bn       ; bt1 = qright(6); bt2 = qright(8)
-!
-!  call comp_mhd_flux(rho, p, vn, vt1, vt2, bn, bt1, bt2, cvarright, fright)
-!
-!  ! Mean flux
-!  flux     = half*(fright + fleft)*zero_flux
-!
-!  ! Mean normal velocity
-!  vleft    = half*(qleft(3) + qright(3))
-!
-!  ! Difference between the 2 states 
-!  cvardiff = half*(cvarright - cvarleft)
-!
-! ! The upwind flux
-!  flux     = flux - abs(vleft)*cvardiff
-!
-!  return
-!end subroutine upwind
-!!===============================================================================
-!!> Lax-Friedrich Riemann solver
+!!> 2D Lax-Friedrich Riemann solver
 !!===============================================================================
 !subroutine lax_friedrich(qleft, qright, flux, zero_flux)
-!  use params
+!  !$acc routine seq
 !  implicit none
 !
 !  real(dp), dimension(nvar), intent(out) :: flux
@@ -798,11 +864,13 @@ end subroutine upwind
 !  
 !  return
 !end subroutine lax_friedrich
+
+
 !!===============================================================================
 !!> Athena Roe Riemann solver
 !!===============================================================================
 !subroutine athena_roe(qleft, qright, flux, zero_flux)
-!  use params
+!  !$acc routine seq
 !  implicit none
 !
 !  real(dp), dimension(nvar), intent(out) :: flux
@@ -958,11 +1026,13 @@ end subroutine upwind
 !
 !  return
 !end subroutine athena_roe
+
+
 !!===============================================================================
 !!> Compute MHD adiabatic eigenvalues
 !!===============================================================================
 !subroutine mhd_eigenvalues(r, u, v, w, p, a, b, c, lambda)
-!  use params
+!  !$acc routine seq
 !  implicit none
 !
 !  real(dp), intent(in) :: r, u, v, w, p, a, b, c
@@ -997,12 +1067,14 @@ end subroutine upwind
 !
 !  return
 !end subroutine mhd_eigenvalues
+
+
 !!===============================================================================
 !!> Compute Roe adiabatic eigenvalues
 !!===============================================================================
 !subroutine roe_eigenvalues(r, u, v, w, h, a, b, c , xfactor, yfactor, lambda &
 !     & , rem, lem)
-!  use params
+!  !$acc routine seq
 !  implicit none
 !
 !  real(dp), intent(in) :: r, u, v, w, h, a, b, c, xfactor, yfactor
@@ -1221,3 +1293,5 @@ end subroutine upwind
 !
 !  return
 !end subroutine roe_eigenvalues
+
+end module solver_magnetic

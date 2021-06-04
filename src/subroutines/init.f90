@@ -35,6 +35,8 @@ subroutine init_param
      & , nu, eta, rhs, dtdump, dthist, dtspec, io_type, nxslice, nyslice &
      & , nzslice, nxglob, nyglob, nzglob)
 
+  !$acc update device(gamma)
+
   !calculate state vector sizes
   iu1 = 1-nghost; iu2 = nx+nghost
   ju1 = 1       ; ju2 = 1
@@ -333,14 +335,10 @@ subroutine init_solver(riemann, riemann2d, iriemann, iriemann2d)
      iriemann2d = iroe
   case('llf')
      iriemann2d = illf
-  case('hll')     
-     iriemann2d = ihll
   case('hlld')
      iriemann2d = ihlld
   case('upwind')
      iriemann2d = iupwind
-  case('hydro')
-     iriemann2d = iacoustic
   case('hllf')
      iriemann2d = ihllf
   case('hlla')

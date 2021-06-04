@@ -110,6 +110,7 @@ subroutine godunov
   use params
   use variables
   use solver
+  use solver_magnetic
   implicit none
 
   integer :: i, j, k, idim
@@ -166,11 +167,14 @@ subroutine godunov
   !$acc data create(emfx, emfy, emfz)
   !$py start_timing Riemann magnetic
 #if NDIM > 1
-  !$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfz, 3)
+  !!$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfz, 3)
+  call riemann_solver_magnetic (qRT, qRB, qLT, qLB, emfz, 3)
 #endif
 #if NDIM == 3
-  !$py call_solver riemann_magnetic (qRT, qLT, qRB, qLB, emfy, 2)
-  !$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfx, 1)
+  !!$py call_solver riemann_magnetic (qRT, qLT, qRB, qLB, emfy, 2)
+  !!$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfx, 1)
+  call riemann_solver_magnetic (qRT, qLT, qRB, qLB, emfy, 2)
+  call riemann_solver_magnetic (qRT, qRB, qLT, qLB, emfx, 1)
 #endif
   !$py end_timing Riemann magnetic
 
