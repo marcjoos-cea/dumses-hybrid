@@ -109,6 +109,7 @@ end subroutine primitive
 subroutine godunov
   use params
   use variables
+  use solver
   implicit none
 
   integer :: i, j, k, idim
@@ -158,7 +159,8 @@ subroutine godunov
 
   !$acc data create(fgodunov, fgodunov_pre, flux)
   !$py start_timing Riemann
-  !$py call_solver riemann (qm, qp, fgodunov, fgodunov_pre)
+  !!$py call_solver riemann (qm, qp, fgodunov, fgodunov_pre)
+  call riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   !$py end_timing Riemann
 
   !$acc data create(emfx, emfy, emfz)
