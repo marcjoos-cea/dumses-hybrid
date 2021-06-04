@@ -534,227 +534,227 @@ contains
     return
   end subroutine riemann_solver
 
-  !subroutine hlld(qm, qp, fgodunov, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar, ro, uo, vo, wo, bo, co, ptoto, rl, pl, ul, vl, wl, cl, bl, al, rr, pr, ur, vr, wr, cr, br, ar)
-  !  !$acc routine
-  !  implicit none
-  !
-  !  real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qm 
-  !  real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qp 
-  !  real(dp), intent(inout) :: rl, pl, ul, vl, wl, cl, bl, al
-  !  real(dp), intent(inout) :: rr, pr, ur, vr, wr, cr, br, ar
-  !  real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim),intent(out) :: fgodunov
-  !  real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2), intent(inout) :: rgstar, ugstar, vgstar, wgstar
-  !  real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2), intent(inout) :: bgstar, cgstar, pgstar
-  !
-  !  real(dp), intent(inout) :: ro, uo, vo, wo, bo, co, ptoto
-  !
-  !real(dp) :: sl, sr, sal, sar
-  !real(dp) :: entho, a, sgnm, ploc, proc
-  !real(dp) :: ecinl, emagl, etotl, ptotl, vdotbl, el, cfastl, calfvenl, rcl
-  !real(dp) :: ecinr, emagr, etotr, ptotr, vdotbr, er, cfastr, calfvenr, rcr
-  !real(dp) :: rstarl, vstarl, wstarl, bstarl, cstarl, vdotbstarl
-  !real(dp) :: rstarr, vstarr, wstarr, bstarr, cstarr, vdotbstarr
-  !real(dp) :: sqrrstarl, etotstarl, etotstarstarl
-  !real(dp) :: sqrrstarr, etotstarr, etotstarstarr
-  !real(dp) :: ustar, ptotstar, estar, vstarstar, wstarstar, bstarstar
-  !real(dp) :: cstarstar, vdotbstarstar
-  !real(dp) :: etoto, vdotbo
-  !real(dp) :: c2, b2, d2, cf
-  !
-  !integer :: i, j, k, idim
-  !
-  !entho = one/(gamma-one)
-  !
-  !! enforce continuity of normal component
-  !a    = half*(al + ar)
-  !sgnm = sign(one, a)
-  !al   = a; ar = a
-  !
-#i!f ISO == 1
-  !ploc = rl*ciso**2
-  !proc = rr*ciso**2
-#e!lse
-  !ploc = pl
-  !proc = pr
-#e!ndif
-  !
-  !! left variables
-  !ecinl  = half*(ul*ul + vl*vl + wl*wl)*rl
-  !emagl  = half*(a*a + bl*bl + cl*cl)
-  !etotl  = ploc*entho + ecinl + emagl
-  !ptotl  = ploc + emagl
-  !vdotbl = ul*a + vl*bl + wl*cl
-  !
-  !! right variables
-  !ecinr  = half*(ur*ur + vr*vr + wr*wr)*rr
-  !emagr  = half*(a*a + br*br + cr*cr)
-  !etotr  = proc*entho + ecinr + emagr
-  !ptotr  = proc + emagr
-  !vdotbr = ur*a + vr*br + wr*cr
-  !
-  !c2     = gamma*ploc/rl
-  !b2     = a*a + bl*bl + cl*cl
-  !d2     = half*(c2 + b2/rl)
-  !cfastl = sqrt(d2 + sqrt(d2**2 - c2*a*a/rl))
-  !
-  !c2     = gamma*proc/rr
-  !b2     = a*a + br*br + cr*cr
-  !d2     = half*(c2 + b2/rr)
-  !cfastr = sqrt(d2 + sqrt(d2**2 - c2*a*a/rr))
-  !
-  !! compute hll wave speed
-  !sl = min(ul, ur) - max(cfastl, cfastr)
-  !sr = max(ul, ur) + max(cfastl, cfastr)
-  !
-  !! compute lagrangian sound speed
-  !rcl = rl*(ul - sl)
-  !rcr = rr*(sr - ur)
-  !
-  !! compute acoustic star state
-  !ustar    = (rcr*ur + rcl*ul + (ptotl - ptotr))/(rcr + rcl)
-  !ptotstar = (rcr*ptotl + rcl*ptotr + rcl*rcr*(ul-ur))/(rcr + rcl)
-  !
-  !! left star region variables
-  !rstarl = rl*(sl - ul)/(sl - ustar)
-  !estar  = rl*(sl - ul)*(sl - ustar) - a**2
-  !el     = rl*(sl - ul)*(sl - ul) - a**2
-  !if (estar == zero) then
-  !   vstarl = vl
-  !   bstarl = bl
-  !   wstarl = wl
-  !   cstarl = cl
-  !else
-  !   vstarl = vl - a*bl*(ustar - ul)/estar
-  !   bstarl = bl*el/estar
-  !   wstarl = wl - a*cl*(ustar - ul)/estar
-  !   cstarl = cl*el/estar
-  !endif
-  !vdotbstarl = ustar*a + vstarl*bstarl + wstarl*cstarl
-  !etotstarl  = ((sl - ul)*etotl - ptotl*ul + ptotstar*ustar &
-  !           + a*(vdotbl - vdotbstarl))/(sl - ustar)
-  !sqrrstarl  = sqrt(rstarl)
-  !calfvenl   = abs(a)/sqrrstarl
-  !sal        = ustar - calfvenl
-  !
-  !! right star region variables
-  !rstarr = rr*(sr - ur)/(sr - ustar)
-  !estar  = rr*(sr - ur)*(sr - ustar) - a**2
-  !er     = rr*(sr - ur)*(sr - ur) - a**2
-  !if (estar == zero) then
-  !   vstarr = vr
-  !   bstarr = br
-  !   wstarr = wr
-  !   cstarr = cr
-  !else
-  !   vstarr = vr - a*br*(ustar - ur)/estar
-  !   bstarr = br*er/estar
-  !   wstarr = wr - a*cr*(ustar - ur)/estar
-  !   cstarr = cr*er/estar
-  !endif
-  !vdotbstarr = ustar*a + vstarr*bstarr + wstarr*cstarr
-  !etotstarr  = ((sr - ur)*etotr - ptotr*ur + ptotstar*ustar &
-  !           + a*(vdotbr - vdotbstarr))/(sr - ustar)
-  !sqrrstarr  = sqrt(rstarr)
-  !calfvenr   = abs(a)/sqrrstarr
-  !sar        = ustar + calfvenr
-  !
-  !! double star region variables
-  !vstarstar = (sqrrstarl*vstarl + sqrrstarr*vstarr &
-  !        + sgnm*(bstarr - bstarl))/(sqrrstarl + sqrrstarr)
-  !wstarstar = (sqrrstarl*wstarl + sqrrstarr*wstarr &
-  !        + sgnm*(cstarr - cstarl))/(sqrrstarl + sqrrstarr)
-  !bstarstar = (sqrrstarl*bstarr + sqrrstarr*bstarl &
-  !        + sgnm*sqrrstarl*sqrrstarr*(vstarr - vstarl))/(sqrrstarl + sqrrstarr)
-  !cstarstar = (sqrrstarl*cstarr + sqrrstarr*cstarl &
-  !        + sgnm*sqrrstarl*sqrrstarr*(wstarr - wstarl))/(sqrrstarl + sqrrstarr)
-  !vdotbstarstar = ustar*a + vstarstar*bstarstar + wstarstar*cstarstar
-  !etotstarstarl = etotstarl - sgnm*sqrrstarl*(vdotbstarl - vdotbstarstar)
-  !etotstarstarr = etotstarr + sgnm*sqrrstarr*(vdotbstarr - vdotbstarstar)
-  !
-  !! sample the solution at x/t=0
-  !if (sl > zero) then
-  !   ro = rl
-  !   uo = ul
-  !   vo = vl
-  !   wo = wl
-  !   bo = bl
-  !   co = cl
-  !   ptoto  = ptotl
-  !   etoto  = etotl
-  !   vdotbo = vdotbl
-  !else if (sal > zero) then
-  !   ro = rstarl
-  !   uo = ustar
-  !   vo = vstarl
-  !   wo = wstarl
-  !   bo = bstarl
-  !   co = cstarl
-  !   ptoto  = ptotstar
-  !   etoto  = etotstarl
-  !   vdotbo = vdotbstarl
-  !else if (ustar > zero) then
-  !   ro = rstarl
-  !   uo = ustar
-  !   vo = vstarstar
-  !   wo = wstarstar
-  !   bo = bstarstar
-  !   co = cstarstar
-  !   ptoto  = ptotstar
-  !   etoto  = etotstarstarl
-  !   vdotbo = vdotbstarstar
-  !else if (sar > zero)then
-  !   ro = rstarr
-  !   uo = ustar
-  !   vo = vstarstar
-  !   wo = wstarstar
-  !   bo = bstarstar
-  !   co = cstarstar
-  !   ptoto  = ptotstar
-  !   etoto  = etotstarstarr
-  !   vdotbo = vdotbstarstar
-  !else if (sr > zero)then
-  !   ro = rstarr
-  !   uo = ustar
-  !   vo = vstarr
-  !   wo = wstarr
-  !   bo = bstarr
-  !   co = cstarr
-  !   ptoto  = ptotstar
-  !   etoto  = etotstarr
-  !   vdotbo = vdotbstarr
-  !else
-  !   ro = rr
-  !   uo = ur
-  !   vo = vr
-  !   wo = wr
-  !   bo = br
-  !   co = cr
-  !   ptoto  = ptotr
-  !   etoto  = etotr
-  !   vdotbo = vdotbr
-  !end if
-  !
-  !! compute the godunov flux
-  !fgodunov(i,j,k,1,idim) = ro*uo
-  !fgodunov(i,j,k,2,idim) = (etoto + ptoto)*uo - a*vdotbo
-  !fgodunov(i,j,k,3,idim) = ro*uo*uo - a*a
-  !fgodunov(i,j,k,4,idim) = zero
-  !fgodunov(i,j,k,5,idim) = ro*uo*vo - a*bo
-  !fgodunov(i,j,k,6,idim) = bo*uo - a*vo
-  !fgodunov(i,j,k,7,idim) = ro*uo*wo - a*co
-  !fgodunov(i,j,k,8,idim) = co*uo - a*wo
-  !
-  !rgstar(i,j,k) = ro
-  !ugstar(i,j,k) = uo
-  !vgstar(i,j,k) = vo
-  !wgstar(i,j,k) = wo
-  !bgstar(i,j,k) = bo
-  !cgstar(i,j,k) = co
-  !pgstar(i,j,k) = ptoto
-  !
-  !
-  !  return
-  !end subroutine hlld
+!  subroutine hlld(qm, qp, fgodunov, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar, ro, uo, vo, wo, bo, co, ptoto, rl, pl, ul, vl, wl, cl, bl, al, rr, pr, ur, vr, wr, cr, br, ar)
+!    !$acc routine
+!    implicit none
+!  
+!    real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qm 
+!    real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qp 
+!    real(dp), intent(inout) :: rl, pl, ul, vl, wl, cl, bl, al
+!    real(dp), intent(inout) :: rr, pr, ur, vr, wr, cr, br, ar
+!    real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim),intent(out) :: fgodunov
+!    real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2), intent(inout) :: rgstar, ugstar, vgstar, wgstar
+!    real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2), intent(inout) :: bgstar, cgstar, pgstar
+!  
+!    real(dp), intent(inout) :: ro, uo, vo, wo, bo, co, ptoto
+!  
+!  real(dp) :: sl, sr, sal, sar
+!  real(dp) :: entho, a, sgnm, ploc, proc
+!  real(dp) :: ecinl, emagl, etotl, ptotl, vdotbl, el, cfastl, calfvenl, rcl
+!  real(dp) :: ecinr, emagr, etotr, ptotr, vdotbr, er, cfastr, calfvenr, rcr
+!  real(dp) :: rstarl, vstarl, wstarl, bstarl, cstarl, vdotbstarl
+!  real(dp) :: rstarr, vstarr, wstarr, bstarr, cstarr, vdotbstarr
+!  real(dp) :: sqrrstarl, etotstarl, etotstarstarl
+!  real(dp) :: sqrrstarr, etotstarr, etotstarstarr
+!  real(dp) :: ustar, ptotstar, estar, vstarstar, wstarstar, bstarstar
+!  real(dp) :: cstarstar, vdotbstarstar
+!  real(dp) :: etoto, vdotbo
+!  real(dp) :: c2, b2, d2, cf
+!  
+!  integer :: i, j, k, idim
+!  
+!  entho = one/(gamma-one)
+!  
+!  ! enforce continuity of normal component
+!  a    = half*(al + ar)
+!  sgnm = sign(one, a)
+!  al   = a; ar = a
+!  
+!#if ISO == 1
+!  ploc = rl*ciso**2
+!  proc = rr*ciso**2
+!#else
+!  ploc = pl
+!  proc = pr
+!#endif
+!  
+!  ! left variables
+!  ecinl  = half*(ul*ul + vl*vl + wl*wl)*rl
+!  emagl  = half*(a*a + bl*bl + cl*cl)
+!  etotl  = ploc*entho + ecinl + emagl
+!  ptotl  = ploc + emagl
+!  vdotbl = ul*a + vl*bl + wl*cl
+!  
+!  ! right variables
+!  ecinr  = half*(ur*ur + vr*vr + wr*wr)*rr
+!  emagr  = half*(a*a + br*br + cr*cr)
+!  etotr  = proc*entho + ecinr + emagr
+!  ptotr  = proc + emagr
+!  vdotbr = ur*a + vr*br + wr*cr
+!  
+!  c2     = gamma*ploc/rl
+!  b2     = a*a + bl*bl + cl*cl
+!  d2     = half*(c2 + b2/rl)
+!  cfastl = sqrt(d2 + sqrt(d2**2 - c2*a*a/rl))
+!  
+!  c2     = gamma*proc/rr
+!  b2     = a*a + br*br + cr*cr
+!  d2     = half*(c2 + b2/rr)
+!  cfastr = sqrt(d2 + sqrt(d2**2 - c2*a*a/rr))
+!  
+!  ! compute hll wave speed
+!  sl = min(ul, ur) - max(cfastl, cfastr)
+!  sr = max(ul, ur) + max(cfastl, cfastr)
+!  
+!  ! compute lagrangian sound speed
+!  rcl = rl*(ul - sl)
+!  rcr = rr*(sr - ur)
+!  
+!  ! compute acoustic star state
+!  ustar    = (rcr*ur + rcl*ul + (ptotl - ptotr))/(rcr + rcl)
+!  ptotstar = (rcr*ptotl + rcl*ptotr + rcl*rcr*(ul-ur))/(rcr + rcl)
+!  
+!  ! left star region variables
+!  rstarl = rl*(sl - ul)/(sl - ustar)
+!  estar  = rl*(sl - ul)*(sl - ustar) - a**2
+!  el     = rl*(sl - ul)*(sl - ul) - a**2
+!  if (estar == zero) then
+!     vstarl = vl
+!     bstarl = bl
+!     wstarl = wl
+!     cstarl = cl
+!  else
+!     vstarl = vl - a*bl*(ustar - ul)/estar
+!     bstarl = bl*el/estar
+!     wstarl = wl - a*cl*(ustar - ul)/estar
+!     cstarl = cl*el/estar
+!  endif
+!  vdotbstarl = ustar*a + vstarl*bstarl + wstarl*cstarl
+!  etotstarl  = ((sl - ul)*etotl - ptotl*ul + ptotstar*ustar &
+!             + a*(vdotbl - vdotbstarl))/(sl - ustar)
+!  sqrrstarl  = sqrt(rstarl)
+!  calfvenl   = abs(a)/sqrrstarl
+!  sal        = ustar - calfvenl
+!  
+!  ! right star region variables
+!  rstarr = rr*(sr - ur)/(sr - ustar)
+!  estar  = rr*(sr - ur)*(sr - ustar) - a**2
+!  er     = rr*(sr - ur)*(sr - ur) - a**2
+!  if (estar == zero) then
+!     vstarr = vr
+!     bstarr = br
+!     wstarr = wr
+!     cstarr = cr
+!  else
+!     vstarr = vr - a*br*(ustar - ur)/estar
+!     bstarr = br*er/estar
+!     wstarr = wr - a*cr*(ustar - ur)/estar
+!     cstarr = cr*er/estar
+!  endif
+!  vdotbstarr = ustar*a + vstarr*bstarr + wstarr*cstarr
+!  etotstarr  = ((sr - ur)*etotr - ptotr*ur + ptotstar*ustar &
+!             + a*(vdotbr - vdotbstarr))/(sr - ustar)
+!  sqrrstarr  = sqrt(rstarr)
+!  calfvenr   = abs(a)/sqrrstarr
+!  sar        = ustar + calfvenr
+!  
+!  ! double star region variables
+!  vstarstar = (sqrrstarl*vstarl + sqrrstarr*vstarr &
+!          + sgnm*(bstarr - bstarl))/(sqrrstarl + sqrrstarr)
+!  wstarstar = (sqrrstarl*wstarl + sqrrstarr*wstarr &
+!          + sgnm*(cstarr - cstarl))/(sqrrstarl + sqrrstarr)
+!  bstarstar = (sqrrstarl*bstarr + sqrrstarr*bstarl &
+!          + sgnm*sqrrstarl*sqrrstarr*(vstarr - vstarl))/(sqrrstarl + sqrrstarr)
+!  cstarstar = (sqrrstarl*cstarr + sqrrstarr*cstarl &
+!          + sgnm*sqrrstarl*sqrrstarr*(wstarr - wstarl))/(sqrrstarl + sqrrstarr)
+!  vdotbstarstar = ustar*a + vstarstar*bstarstar + wstarstar*cstarstar
+!  etotstarstarl = etotstarl - sgnm*sqrrstarl*(vdotbstarl - vdotbstarstar)
+!  etotstarstarr = etotstarr + sgnm*sqrrstarr*(vdotbstarr - vdotbstarstar)
+!  
+!  ! sample the solution at x/t=0
+!  if (sl > zero) then
+!     ro = rl
+!     uo = ul
+!     vo = vl
+!     wo = wl
+!     bo = bl
+!     co = cl
+!     ptoto  = ptotl
+!     etoto  = etotl
+!     vdotbo = vdotbl
+!  else if (sal > zero) then
+!     ro = rstarl
+!     uo = ustar
+!     vo = vstarl
+!     wo = wstarl
+!     bo = bstarl
+!     co = cstarl
+!     ptoto  = ptotstar
+!     etoto  = etotstarl
+!     vdotbo = vdotbstarl
+!  else if (ustar > zero) then
+!     ro = rstarl
+!     uo = ustar
+!     vo = vstarstar
+!     wo = wstarstar
+!     bo = bstarstar
+!     co = cstarstar
+!     ptoto  = ptotstar
+!     etoto  = etotstarstarl
+!     vdotbo = vdotbstarstar
+!  else if (sar > zero)then
+!     ro = rstarr
+!     uo = ustar
+!     vo = vstarstar
+!     wo = wstarstar
+!     bo = bstarstar
+!     co = cstarstar
+!     ptoto  = ptotstar
+!     etoto  = etotstarstarr
+!     vdotbo = vdotbstarstar
+!  else if (sr > zero)then
+!     ro = rstarr
+!     uo = ustar
+!     vo = vstarr
+!     wo = wstarr
+!     bo = bstarr
+!     co = cstarr
+!     ptoto  = ptotstar
+!     etoto  = etotstarr
+!     vdotbo = vdotbstarr
+!  else
+!     ro = rr
+!     uo = ur
+!     vo = vr
+!     wo = wr
+!     bo = br
+!     co = cr
+!     ptoto  = ptotr
+!     etoto  = etotr
+!     vdotbo = vdotbr
+!  end if
+!  
+!  ! compute the godunov flux
+!  fgodunov(i,j,k,1,idim) = ro*uo
+!  fgodunov(i,j,k,2,idim) = (etoto + ptoto)*uo - a*vdotbo
+!  fgodunov(i,j,k,3,idim) = ro*uo*uo - a*a
+!  fgodunov(i,j,k,4,idim) = zero
+!  fgodunov(i,j,k,5,idim) = ro*uo*vo - a*bo
+!  fgodunov(i,j,k,6,idim) = bo*uo - a*vo
+!  fgodunov(i,j,k,7,idim) = ro*uo*wo - a*co
+!  fgodunov(i,j,k,8,idim) = co*uo - a*wo
+!  
+!  rgstar(i,j,k) = ro
+!  ugstar(i,j,k) = uo
+!  vgstar(i,j,k) = vo
+!  wgstar(i,j,k) = wo
+!  bgstar(i,j,k) = bo
+!  cgstar(i,j,k) = co
+!  pgstar(i,j,k) = ptoto
+!  
+!  
+!    return
+!  end subroutine hlld
 
   subroutine left_var!(ul, vl, wl, rl, bl, cl, entho, a, ploc, ecinl, emagl, etotl, ptotl, vdotbl)
     !$acc routine
