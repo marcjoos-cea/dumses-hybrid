@@ -23,9 +23,13 @@
 subroutine deallocate_workspace
   use variables
   use params
+  use mpi_var
   implicit none
 
   !$py begin_statement
+
+  !$acc exit data delete(slbound, srbound, rlbound, rrbound)
+  deallocate(slbound, srbound, rlbound, rrbound)
   
   !$acc exit data delete(qm, qp, qRT, qRB, qLT, qLB, gravin, dq, bfc, dbfc, &
   !$acc                  flux, emfx, emfy, emfz, fgodunov, fgodunov_pre)
