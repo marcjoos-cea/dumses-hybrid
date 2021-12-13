@@ -148,6 +148,7 @@ subroutine finalize_mpi
 #if OACC == 1
   use openacc
 #endif
+  use mpi_var
   implicit none
   
   integer :: error=0, ierr
@@ -241,16 +242,11 @@ subroutine boundary_x
   implicit none
 
   integer :: size
-  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
-  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
   integer :: j, k
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  allocate(slbound(ju1:ju2,ku1:ku2,1:nvar+3,3),srbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
-  allocate(rlbound(ju1:ju2,ku1:ku2,1:nvar+3,3),rrbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
-
-  !$acc data create(slbound, srbound, rlbound, rrbound)
+  !$acc data present(slbound, rlbound, rlbound, rrbound)
   
   size = (ju2 - ju1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (boundary_type(1) == 'periodic') then
@@ -426,9 +422,7 @@ subroutine boundary_x
   endif
 
   !$acc end data
-
-  deallocate(slbound, srbound, rlbound, rrbound)
-
+  
   return
 end subroutine boundary_x
 !===============================================================================
@@ -442,16 +436,11 @@ subroutine boundary_y
   implicit none
 
   integer :: size
-  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
-  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
   integer :: i, k
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  allocate(slbound(iu1:iu2,ku1:ku2,1:nvar+3,3),srbound(iu1:iu2,ku1:ku2,1:nvar+3,3))
-  allocate(rlbound(iu1:iu2,ku1:ku2,1:nvar+3,3),rrbound(iu1:iu2,ku1:ku2,1:nvar+3,3))
-  
-  !$acc data create(slbound, srbound, rlbound, rrbound)
+  !$acc data present(slbound, rlbound, rlbound, rrbound)
 
   size = (iu2 - iu1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (nyslice > 1) then
@@ -521,9 +510,7 @@ subroutine boundary_y
   endif
 
   !$acc end data
-
-  deallocate(slbound, srbound, rlbound, rrbound)
-
+  
   return
 end subroutine boundary_y
 !===============================================================================
@@ -537,17 +524,12 @@ subroutine boundary_z
   implicit none
 
   integer :: size
-  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
-  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
   integer :: i, j
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  allocate(slbound(iu1:iu2,ju1:ju2,1:nvar+3,3),srbound(iu1:iu2,ju1:ju2,1:nvar+3,3))
-  allocate(rlbound(iu1:iu2,ju1:ju2,1:nvar+3,3),rrbound(iu1:iu2,ju1:ju2,1:nvar+3,3))
+  !$acc data present(slbound, rlbound, rlbound, rrbound)
   
-  !$acc data create(slbound, srbound, rlbound, rrbound)
-
   size = (iu2 - iu1 + 1)*(ju2 - ju1 + 1)*(nvar + 3)*nghost
   if (nzslice > 1) then
      !$acc kernels loop
@@ -608,11 +590,9 @@ subroutine boundary_z
         !$OMP END PARALLEL DO
      endif
   endif
-  
+
   !$acc end data
-
-  deallocate(slbound, srbound, rlbound, rrbound)
-
+  
   return
 end subroutine boundary_z
 #endif

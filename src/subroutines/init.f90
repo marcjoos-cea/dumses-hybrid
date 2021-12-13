@@ -355,6 +355,7 @@ end subroutine init_solver
 subroutine allocate_workspace
   use variables
   use params
+  use mpi_var
   implicit none
 
   !$py begin_statement
@@ -405,6 +406,10 @@ subroutine allocate_workspace
   !$acc rgstar(:,:,:), ugstar(:,:,:), vgstar(:,:,:), wgstar(:,:,:), bgstar(:,:,:), &
   !$acc cgstar(:,:,:), pgstar(:,:,:))
 
+  allocate(slbound(ju1:ju2,ku1:ku2,1:nvar+3,3),srbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
+  allocate(rlbound(ju1:ju2,ku1:ku2,1:nvar+3,3),rrbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
+  !$acc enter data create(slbound(:,:,:,:), srbound(:,:,:,:), rlbound(:,:,:,:), rrbound(:,:,:,:))
+  
   return
 end subroutine allocate_workspace
 !===============================================================================

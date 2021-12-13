@@ -241,6 +241,10 @@ module mpi_var
   integer :: zleft     !< left neighbor of the current process, z-direction 
   integer :: zright    !< right neighbor of the current process, z-direction
 
+  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
+  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
+
+  
 end module mpi_var
 !===============================================================================
 !> OpenACC kernels configuration parameters

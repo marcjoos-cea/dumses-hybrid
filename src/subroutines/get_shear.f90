@@ -37,8 +37,6 @@ subroutine get_shear_quant(inner, outer, itime)
   integer  :: npes_shift, ncell_shift
   integer  :: rank_send1, rank_send2, rank_recv1, rank_recv2
   integer :: size
-  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
-  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
@@ -48,11 +46,6 @@ subroutine get_shear_quant(inner, outer, itime)
   deltay = mod(yshear, Ly)
   epsi   = mod(deltay, dy)
   jshft  = int(deltay/dy)
-
-  allocate(slbound(nghost,ju1:ju2,ku1:ku2,1:nvar+3))
-  allocate(srbound(nghost,ju1:ju2,ku1:ku2,1:nvar+3))
-  allocate(rlbound(nghost,ju1:ju2,ku1:ku2,1:nvar+3))
-  allocate(rrbound(nghost,ju1:ju2,ku1:ku2,1:nvar+3))
 
   ! First, perform a periodic boundary conditions-like communication
   size = (ju2 - ju1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
@@ -150,7 +143,6 @@ subroutine get_shear_quant(inner, outer, itime)
      endif
   endif
 
-  deallocate(slbound, srbound, rlbound, rrbound)
 #endif
 
   return
@@ -162,7 +154,8 @@ subroutine get_shear_flux(inner, outer, itime)
 #if MPI == 1
   use params
   use variables
-  use mpi_var
+  use mpi_var, only: mype, npes, xposition, yposition, zposition, xleft, xright &
+       , yleft, yright, zleft, zright
   use mpi
   implicit none
 
@@ -339,7 +332,8 @@ subroutine get_shear_emf(inner, outer, itime)
 #if MPI == 1
   use params
   use variables
-  use mpi_var
+  use mpi_var, only: mype, npes, xposition, yposition, zposition, xleft, xright &
+       , yleft, yright, zleft, zright
   use mpi
   implicit none
 
