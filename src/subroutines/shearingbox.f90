@@ -49,7 +49,7 @@ subroutine shearing_boundary(itime)
   allocate(inner(1:nghost,ju1:ju2,ku1:ku2,1:nvar+3))
   allocate(outer(1:nghost,ju1:ju2,ku1:ku2,1:nvar+3))
 
-  !$acc data pcreate(inner_dq, outer_dq, inner, outer)
+  !$acc data create(inner_dq, outer_dq, inner, outer)
   if (nxslice*nyslice*nzslice > 1) then
      !$acc update host(uin)
      call get_shear_quant(inner, outer, itime)
@@ -233,7 +233,7 @@ subroutine shearing_flux(itime)
   allocate(inner(jf1:jf2+1,kf1:kf2))
   allocate(outer(jf1-1:jf2,kf1:kf2))
 
-  !$acc data pcreate(inner, outer)
+  !$acc data create(inner, outer)
   if (nxslice*nyslice*nzslice > 1) then
      !$acc update host(flux)
      call get_shear_flux(inner, outer, itime)
@@ -323,7 +323,7 @@ subroutine shearing_emf(itime)
   allocate(inner(ju1:ju2,ku1:ku2))
   allocate(outer(ju1:ju2,ku1:ku2))
 
-  !$acc data pcreate(inner, outer)
+  !$acc data create(inner, outer)
   if (nxslice*nyslice*nzslice > 1) then
      !$acc update host(emfy)
      call get_shear_emf(inner, outer, itime)

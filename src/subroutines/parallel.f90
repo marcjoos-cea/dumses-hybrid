@@ -250,7 +250,7 @@ subroutine boundary_x
   allocate(slbound(ju1:ju2,ku1:ku2,1:nvar+3,3),srbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
   allocate(rlbound(ju1:ju2,ku1:ku2,1:nvar+3,3),rrbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
 
-  !$acc data pcreate(slbound, srbound, rlbound, rrbound)
+  !$acc data create(slbound, srbound, rlbound, rrbound)
   
   size = (ju2 - ju1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (boundary_type(1) == 'periodic') then
@@ -419,7 +419,7 @@ subroutine boundary_y
   allocate(slbound(iu1:iu2,ku1:ku2,1:nvar+3,3),srbound(iu1:iu2,ku1:ku2,1:nvar+3,3))
   allocate(rlbound(iu1:iu2,ku1:ku2,1:nvar+3,3),rrbound(iu1:iu2,ku1:ku2,1:nvar+3,3))
   
-  !$acc data pcreate(slbound, srbound, rlbound, rrbound)
+  !$acc data create(slbound, srbound, rlbound, rrbound)
 
   size = (iu2 - iu1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (nyslice > 1) then
@@ -506,7 +506,7 @@ subroutine boundary_z
   allocate(slbound(iu1:iu2,ju1:ju2,1:nvar+3,3),srbound(iu1:iu2,ju1:ju2,1:nvar+3,3))
   allocate(rlbound(iu1:iu2,ju1:ju2,1:nvar+3,3),rrbound(iu1:iu2,ju1:ju2,1:nvar+3,3))
   
-  !$acc data pcreate(slbound, srbound, rlbound, rrbound)
+  !$acc data create(slbound, srbound, rlbound, rrbound)
 
   size = (iu2 - iu1 + 1)*(ju2 - ju1 + 1)*(nvar + 3)*nghost
   if (nzslice > 1) then
