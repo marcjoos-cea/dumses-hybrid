@@ -17,6 +17,7 @@ PHDF5 = 0
 PNCDF = 0
 PGIFC = 1
 OACC  = 1
+RDMA  = 1
 
 # Problem directory
 #===============================================================================
@@ -31,7 +32,7 @@ F90      = mpif90
 FFLAGS   = -O0 -acc=gpu,host -gpu=time,cc70 -Minfo=accel
 CPPFLAGS = -Mpreprocess
 MODFLAGS = -module $(BINDIR)
-PHYFLAGS = -DPNCDF=$(PNCDF) -DHDF5=$(HDF5) -DPHDF5=$(PHDF5) -DNDIM=$(NDIM) -DISO=$(ISO) -DMPI=$(MPI) -DPGIFC=$(PGIFC) -DGEOM=$(GEOM) -DCARTESIAN=1 -DCYLINDRICAL=2 -DSPHERICAL=3 -DOACC=$(OACC)
+PHYFLAGS = -DPNCDF=$(PNCDF) -DHDF5=$(HDF5) -DPHDF5=$(PHDF5) -DNDIM=$(NDIM) -DISO=$(ISO) -DMPI=$(MPI) -DPGIFC=$(PGIFC) -DGEOM=$(GEOM) -DCARTESIAN=1 -DCYLINDRICAL=2 -DSPHERICAL=3 -DOACC=$(OACC) -DRDMA=$(RDMA)
 ifeq ($(MPI),1)
 MPIINC   = 
 MPILIB   = 
