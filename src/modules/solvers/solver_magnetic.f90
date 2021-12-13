@@ -110,7 +110,8 @@ subroutine riemann_solver_magnetic(qRT, qRB, qLT, qLB, emf, idim)
      krtoffset = 0; krboffset = 0; kltoffset = 0; klboffset = 0
   endif
 
-  !$acc kernels loop private(qLL, qRL, qLR, qRR) independent
+  !$acc kernels loop private(qLL, qRL, qLR, qRR) present(x(:), emf(:,:,:), &
+  !$acc qrt(:,:,:,:,:), qlb(:,:,:,:,:), qlt(:,:,:,:,:), qrb(:,:,:,:,:)) independent
   !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(irt, ilt, jrt, jlt, krt, klt) &
   !$OMP PRIVATE(rLL, rLR, rRL, rRR, pLL, pLR, pRL, pRR, uLL, uLR, uRL, uRR) &
   !$OMP PRIVATE(vLL, vLR, vRL, vRR, ALL, ALR, ARL, ARR, BLL, BLR, BRL, BRR) &

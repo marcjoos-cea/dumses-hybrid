@@ -69,15 +69,14 @@ end subroutine solver_utils
 !<
 !===============================================================================
 subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
-  use variables, only: dt, ds, dv, x, y
+  use variables, only: dt, ds, dv, x, y, rgstar, ugstar, vgstar, wgstar &
+       & , bgstar, cgstar, pgstar
   implicit none
   
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qm 
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qp 
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim),intent(out) :: fgodunov
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,ndim), intent(out) :: fgodunov_pre
-  real(dp), dimension(:,:,:), allocatable :: rgstar, ugstar, vgstar, wgstar
-  real(dp), dimension(:,:,:), allocatable :: bgstar, cgstar, pgstar
   real(dp) :: trgstar, tugstar, tvgstar, twgstar
   real(dp) :: tbgstar, tcgstar, tpgstar
   real(dp), dimension(nvar) :: tfgodunov
@@ -92,38 +91,16 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   
   if (verbose) print*, '> Entering riemann_hlld'
   
-  allocate(rgstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  allocate(ugstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  allocate(vgstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  allocate(wgstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  allocate(bgstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  allocate(cgstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  allocate(pgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  !$acc data create(rgstar(:,:,:), ugstar(:,:,:), vgstar(:,:,:), &
+  !$acc             wgstar(:,:,:), bgstar(:,:,:), cgstar(:,:,:), pgstar(:,:,:))
 
-  !$acc data create(rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar)
-
-#if OACC == 1
-  !$acc kernels loop
-  do k = ku1, ku2
-   do j = ju1, ju2
-      do i = iu1, iu2
-         rgstar(i,j,k) = zero
-         ugstar(i,j,k) = zero
-         vgstar(i,j,k) = zero
-         wgstar(i,j,k) = zero
-         bgstar(i,j,k) = zero
-         cgstar(i,j,k) = zero
-         pgstar(i,j,k) = zero
-      enddo
-   enddo
-  enddo
-#else
+  !$acc kernels
   !$OMP PARALLEL WORKSHARE
   rgstar = zero; ugstar = zero; vgstar = zero; wgstar = zero
   bgstar = zero; cgstar = zero; pgstar = zero
   !$OMP END PARALLEL WORKSHARE
-#endif
-
+  !$acc end kernels
+  
   do idim = 1, ndim
      if(idim == 1) then
         ln = 2; lt1 = 3; lt2 = 4
@@ -147,7 +124,8 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
         klo = kf1          ; khi = kf2
         ioffset = 0; joffset = 0; koffset = 1
      endif
-     !$acc kernels loop private(ql, qr, tfgodunov) independent 
+     !$acc kernels loop private(ql, qr, tfgodunov) independent &
+     !$acc present(qm, qp, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar, fgodunov)
      !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(bn_mean, im, jm, km, shear) &
      !$OMP PRIVATE(Ekin, Emag, Etot, rl, pl, ul, vl, wl, cl, bl, al, rr, pr) &
      !$OMP PRIVATE(ur, vr, wr, cr, br, ar, ro, uo, vo, wo, bo, co, ptoto)
@@ -407,8 +385,6 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   enddo
 
   !$acc end data
-
-  deallocate(rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar)
 
   return
 end subroutine riemann_solver
