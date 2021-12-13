@@ -99,7 +99,9 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   allocate(bgstar(iu1:iu2,ju1:ju2,ku1:ku2))
   allocate(cgstar(iu1:iu2,ju1:ju2,ku1:ku2))
   allocate(pgstar(iu1:iu2,ju1:ju2,ku1:ku2))
-  
+
+  !$acc data create(rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar)
+
 #if OACC == 1
   !$acc kernels loop
   do k = ku1, ku2
@@ -121,8 +123,6 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   bgstar = zero; cgstar = zero; pgstar = zero
   !$OMP END PARALLEL WORKSHARE
 #endif
-
-  !$acc data pcreate(rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar)
 
   do idim = 1, ndim
      if(idim == 1) then
