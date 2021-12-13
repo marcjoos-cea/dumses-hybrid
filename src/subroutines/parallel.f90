@@ -269,7 +269,11 @@ subroutine boundary_x
         enddo
         !$OMP END PARALLEL DO
         
+#if RDMA == 1
+        !$acc host_data use_device(slbound, rlbound, rlbound, rrbound)
+#else
         !$acc update host(slbound, srbound)
+#endif
         call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, xleft, 10 &
                         , rlbound, size, MPI_DOUBLE_PRECISION, xright, 10 &
                         , MPI_COMM_WORLD, status, ierr)
@@ -277,7 +281,11 @@ subroutine boundary_x
         call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, xright, 11 &
                         , rrbound, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                         , MPI_COMM_WORLD, status, ierr)
+#if RDMA == 1
+        !$acc end host_data
+#else
         !$acc update device(rlbound, rrbound)
+#endif
      
         !$acc kernels loop
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
@@ -307,11 +315,19 @@ subroutine boundary_x
            enddo
            !$OMP END PARALLEL DO
            
+#if RDMA == 1
+           !$acc host_data use_device(srbound,rlbound)
+#else
            !$acc update host(srbound)
+#endif
            call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, xright, 11 &
                            , rlbound, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
+#if RDMA == 1
+           !$acc end host_data
+#else
            !$acc update device(rlbound)
+#endif
 
            !$acc kernels loop
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
@@ -334,12 +350,20 @@ subroutine boundary_x
               enddo
            enddo
            !$OMP END PARALLEL DO
-           
+
+#if RDMA == 1
+           !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+#else
            !$acc update host(slbound, srbound)
+#endif
            call MPI_sendrecv(slbound, size, MPI_DOUBLE_PRECISION, xleft, 10 &
                            , rrbound, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
+#if RDMA == 1
+           !$acc end host_data
+#else
            !$acc update device(rlbound, rrbound)
+#endif
            
            !$acc kernels loop
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
@@ -366,7 +390,11 @@ subroutine boundary_x
            enddo
            !$OMP END PARALLEL DO
            
+#if RDMA == 1
+           !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+#else
            !$acc update host(slbound, srbound)
+#endif
            call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, xleft, 10 &
                            , rlbound, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
@@ -374,7 +402,11 @@ subroutine boundary_x
            call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, xright, 11 &
                            , rrbound, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
+#if RDMA == 1
+           !$acc end host_data
+#else
            !$acc update device(rlbound, rrbound)
+#endif
            
            !$acc kernels loop
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
@@ -437,7 +469,11 @@ subroutine boundary_y
      enddo
      !$OMP END PARALLEL DO
      
+#if RDMA == 1
+     !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+#else
      !$acc update host(slbound, srbound)
+#endif
      call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, yleft, 10 &
           , rlbound, size, MPI_DOUBLE_PRECISION, yright, 10 &
           , MPI_COMM_WORLD, status, ierr)
@@ -445,7 +481,11 @@ subroutine boundary_y
      call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, yright, 11 &
           , rrbound, size, MPI_DOUBLE_PRECISION, yleft, 11 &
           , MPI_COMM_WORLD, status, ierr)
+#if RDMA == 1
+     !$acc end host_data
+#else
      !$acc update device(rlbound, rrbound)
+#endif
         
      if ((yposition == (nyslice-1)) .and. &
           (boundary_type(2) /= "periodic")) then
@@ -524,7 +564,11 @@ subroutine boundary_z
      enddo
      !$OMP END PARALLEL DO
      
+#if RDMA == 1
+     !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+#else
      !$acc update host(slbound, srbound)
+#endif
      call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, zleft, 10 &
                      , rlbound, size, MPI_DOUBLE_PRECISION, zright, 10 &
                      , MPI_COMM_WORLD, status, ierr)
@@ -532,7 +576,11 @@ subroutine boundary_z
      call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, zright, 11 &
                      , rrbound, size, MPI_DOUBLE_PRECISION, zleft, 11 &
                      , MPI_COMM_WORLD, status, ierr)
+#if RDMA == 1
+     !$acc end host_data
+#else
      !$acc update device(rlbound, rrbound)
+#endif
      
      if ((zposition > 0) .or. (boundary_type(3) == 'periodic')) then
         !$acc kernels loop

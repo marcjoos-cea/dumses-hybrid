@@ -154,17 +154,17 @@ program dumses
 
      if (debug) then
         if (ndump > 5) then
-           call deallocate_workspace
            exit
         endif
      else
         if((time-dt) > tlim) then
-           call deallocate_workspace
            exit
         endif
      endif
   end do
   !$acc end data
+
+  call deallocate_workspace
   
   if(mype == 0) then
      ! Elapsed time - end

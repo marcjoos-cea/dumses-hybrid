@@ -34,8 +34,8 @@ subroutine deallocate_workspace
   deallocate(x, y, z)
   deallocate(dv, ds)
 #if NDIM == 3
-  deallocate(Ex, Ey)
   !$acc exit data delete(Ex, Ey)
+  deallocate(Ex, Ey)
 #endif
 #if NDIM > 1
   !$acc exit data delete(Ez)
