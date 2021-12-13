@@ -60,10 +60,10 @@ program dumses
   call init_parallel
 
   call init_param
-  !$acc data copy(uin, qin, x, y, z, dv, ds) create(dt)
+  !$acc data copy(uin(:,:,:,:), qin(:,:,:,:), x(:), y(:), z(:), dv(:,:,:), ds(:,:,:,:))
   call init
 
-  !$acc update host(uin)
+  !$acc update host(uin(:,:,:,:))
   if (restart == 0) then
      call output
      ndump = ndump + 1
@@ -86,15 +86,15 @@ program dumses
      call compute_dt(dt)
      !$py end_timing Timestep
      if (rhs) then
-        !$acc update host(uin)
+        !$acc update host(uin(:,:,:,:))
         uin_old = uin
      endif
      call godunov
      if (rhs) then
         !$py start_timing Source term
-        !$acc update host(uin)
+        !$acc update host(uin(:,:,:,:))
         call source_term
-        !$acc update device(uin)
+        !$acc update device(uin(:,:,:,:))
         !$py end_timing Source term
      endif
      !$py start_timing FARGO
@@ -123,7 +123,7 @@ program dumses
   
      time = time + dt
      if (debug) then
-        !$acc update host(uin)
+        !$acc update host(uin(:,:,:,:))
         call history
         thist = thist + dthist
         call special
@@ -134,18 +134,18 @@ program dumses
         tdump = tdump + dtdump
      else
         if (((time - dt) <= (thist + dthist)) .and. (time > (thist + dthist))) then
-           !$acc update host(uin)
+           !$acc update host(uin(:,:,:,:))
            call history
            thist = thist + dthist
         endif
         if (((time - dt) <= (tdump + dtdump)) .and. (time > (tdump + dtdump))) then
-           !$acc update host(uin)
+           !$acc update host(uin(:,:,:,:))
            call output
            ndump = ndump + 1
            tdump = tdump + dtdump
         endif
         if (((time - dt) <= (tspec + dtspec)) .and. (time > (tspec + dtspec))) then
-           !$acc update host(uin)
+           !$acc update host(uin(:,:,:,:))
            call special
            nspec = nspec + 1
            tspec = tspec + dtspec

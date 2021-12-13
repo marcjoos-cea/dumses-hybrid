@@ -68,6 +68,7 @@ subroutine init_param
   endif
   
   call allocate_workspace
+  !$acc kernels
   !$OMP PARALLEL WORKSHARE
   uin    = zero
   qin    = zero; emfx         = zero
@@ -75,6 +76,7 @@ subroutine init_param
   flux   = zero; emfz         = zero
   dv     = zero; ds           = zero
   !$OMP END PARALLEL WORKSHARE
+  !$acc end kernels
 
   return
 end subroutine init_param
@@ -94,9 +96,9 @@ subroutine init
   dt   = zero
 
   call init_grid
-  !$acc update host(x, y, z)
+  !$acc update host(x(:), y(:), z(:))
   call condinit
-  !$acc update device(uin)
+  !$acc update device(uin(:,:,:,:))
   call boundary
 
   ! User define quantities or initial values
@@ -120,7 +122,7 @@ subroutine init
      if (verbose) print "('Restart from output #', I6)", restart
      ndump = restart
      call restart_run
-     !$acc update device(uin)
+     !$acc update device(uin(:,:,:,:))
      ndump = ndump + 1
   endif
 
@@ -372,9 +374,11 @@ subroutine allocate_workspace
 #if NDIM == 3
   allocate(Ex(iu1:iu2,ju1:ju2,ku1:ku2))
   allocate(Ey(iu1:iu2,ju1:ju2,ku1:ku2))
+  !$acc enter data create(Ex(:,:,:), Ey(:,:,:))
 #endif
 #if NDIM > 1
   allocate(Ez(iu1:iu2,ju1:ju2,ku1:ku2))
+  !$acc enter data create(Ez(:,:,:))
 #endif
   allocate(bfc(iu1:iu2+1,ju1:ju2+1,ku1:ku2+1,1:3))
   allocate(dq(iu1:iu2+1,ju1:ju2+1,ku1:ku2+1,1:nvar,1:ndim))
@@ -387,6 +391,19 @@ subroutine allocate_workspace
   allocate(qLB(iu1:iu2,ju1:ju2,ku1:ku2,1:nvar,1:3))
   allocate(fgodunov(iu1:iu2,ju1:ju2,ku1:ku2,1:nvar,1:ndim))
   allocate(fgodunov_pre(iu1:iu2,ju1:ju2,ku1:ku2,1:ndim))
+  allocate(rgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  allocate(ugstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  allocate(vgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  allocate(wgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  allocate(bgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  allocate(cgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  allocate(pgstar(iu1:iu2,ju1:ju2,ku1:ku2))
+  !$acc enter data create(qm(:,:,:,:,:), qp(:,:,:,:,:), qRT(:,:,:,:,:), &
+  !$acc qRB(:,:,:,:,:), qLT(:,:,:,:,:), qLB(:,:,:,:,:), gravin(:,:,:,:), &
+  !$acc dq(:,:,:,:,:), bfc(:,:,:,:), dbfc(:,:,:,:,:), fgodunov(:,:,:,:,:), &
+  !$acc fgodunov_pre(:,:,:,:), flux(:,:,:,:,:), emfx(:,:,:), emfy(:,:,:), emfz(:,:,:), &
+  !$acc rgstar(:,:,:), ugstar(:,:,:), vgstar(:,:,:), wgstar(:,:,:), bgstar(:,:,:), &
+  !$acc cgstar(:,:,:), pgstar(:,:,:))
 
   return
 end subroutine allocate_workspace
@@ -425,7 +442,7 @@ subroutine init_grid
 #endif
   endif
 
-  !$acc kernels loop
+  !$acc kernels loop present(x(:))
 #if MPI == 1
   !$OMP PARALLEL DO SCHEDULE(RUNTIME)
   do i = iu1, iu2
@@ -440,7 +457,7 @@ subroutine init_grid
   !$OMP END PARALLEL DO
 #endif
 #if NDIM > 1
-  !$acc kernels loop
+  !$acc kernels loop present(y(:))
 #if MPI == 1
   !$OMP PARALLEL DO SCHEDULE(RUNTIME)
   do j = ju1, ju2
@@ -456,7 +473,7 @@ subroutine init_grid
 #endif
 #endif
 #if NDIM == 3
-  !$acc kernels loop
+  !$acc kernels loop present(z(:))
 #if MPI == 1
   !$OMP PARALLEL DO SCHEDULE(RUNTIME)
   do k = ku1, ku2
@@ -477,7 +494,7 @@ subroutine init_grid
   klo = min(1,ku1+1); khi = max(1,ku2-1)
 
 #if GEOM == CARTESIAN
-  !$acc kernels loop
+  !$acc kernels loop present(dv(:,:,:), ds(:,:,:,:))
   !$OMP PARALLEL DO SCHEDULE(RUNTIME)
   do k = klo,khi
      do j = jlo,jhi
@@ -494,7 +511,7 @@ subroutine init_grid
   !$OMP END PARALLEL DO
 #endif
 #if GEOM == CYLINDRICAL
-  !$acc kernels loop
+  !$acc kernels loop present(dv(:,:,:), ds(:,:,:,:), x(:))
   !$OMP PARALLEL DO SCHEDULE(RUNTIME)
   do k = klo,khi
      do j = jlo,jhi

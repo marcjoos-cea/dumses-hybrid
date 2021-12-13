@@ -174,7 +174,7 @@ module variables
 
   real(dp), dimension(:,:,:,:), allocatable   :: uin          !< MHD variables array
   real(dp), dimension(:,:,:,:), allocatable   :: uin_old      !< MHD variables array at the previous timestep
-  real(dp), dimension(:,:,:,:), allocatable   :: qin            !< primitive array
+  real(dp), dimension(:,:,:,:), allocatable   :: qin          !< primitive array
   real(dp), dimension(:,:,:,:), allocatable   :: gravin       !< grav. array
   real(dp), dimension(:,:,:,:,:), allocatable :: flux         !< flux array
   real(dp), dimension(:,:,:), allocatable     :: emfx         !< EMF array, x-dir.
@@ -200,7 +200,14 @@ module variables
   real(dp), allocatable, dimension(:,:,:,:,:) :: qLT          !< face averaged corner state
   real(dp), allocatable, dimension(:,:,:,:,:) :: qLB          !< face averaged corner state
   real(dp), allocatable, dimension(:,:,:,:,:) :: fgodunov     !< Godunov flux
-  real(dp), allocatable, dimension(:,:,:,:)   :: fgodunov_pre !< 
+  real(dp), allocatable, dimension(:,:,:,:)   :: fgodunov_pre !< Godunov flux
+  real(dp), allocatable, dimension(:,:,:)     :: rgstar       !< starred state
+  real(dp), allocatable, dimension(:,:,:)     :: ugstar       !< starred state
+  real(dp), allocatable, dimension(:,:,:)     :: vgstar       !< starred state
+  real(dp), allocatable, dimension(:,:,:)     :: wgstar       !< starred state
+  real(dp), allocatable, dimension(:,:,:)     :: bgstar       !< starred state
+  real(dp), allocatable, dimension(:,:,:)     :: cgstar       !< starred state
+  real(dp), allocatable, dimension(:,:,:)     :: pgstar       !< starred state
 
   ! Curvilinear coordinates parameters
   real(dp), dimension(:,:,:), allocatable   :: dv       !< cells volume array
@@ -209,8 +216,7 @@ module variables
   ! Time variables
   real(dp) :: dt   !< timestep
   real(dp) :: time !< time
-
-  !$acc declare copyin(dt)
+  !$acc declare create(dt)
 
   ! Output variables
   integer :: ndump !< # of the current output

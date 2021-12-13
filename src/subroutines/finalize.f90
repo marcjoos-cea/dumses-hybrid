@@ -27,14 +27,18 @@ subroutine deallocate_workspace
 
   !$py begin_statement
   
+  !$acc exit data delete(qm, qp, qRT, qRB, qLT, qLB, gravin, dq, bfc, dbfc, &
+  !$acc                  flux, emfx, emfy, emfz, fgodunov, fgodunov_pre)
   deallocate(uin, qin, gravin, flux)
   deallocate(emfx, emfy, emfz)
   deallocate(x, y, z)
   deallocate(dv, ds)
 #if NDIM == 3
   deallocate(Ex, Ey)
+  !$acc exit data delete(Ex, Ey)
 #endif
 #if NDIM > 1
+  !$acc exit data delete(Ez)
   deallocate(Ez)
 #endif
   deallocate(bfc, dq, dbfc)
