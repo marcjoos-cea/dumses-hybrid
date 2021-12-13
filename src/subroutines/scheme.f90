@@ -856,7 +856,7 @@ subroutine trace2d(bfc, dq, dbfc, qm, qp, qRT, qRB, qLT, qLB)
   dtdx = dt/dx
   dtdy = dt/dy
 
-  !$acc data pcreate(Ez)
+  !$acc data create(Ez)
   !$acc kernels loop
   !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(u, v, A, B)
   do k = klo, ku2
@@ -1199,7 +1199,7 @@ subroutine trace3d(bfc, dq, dbfc, qm, qp, qRT, qRB, qLT, qLB)
   dtdy = dt/dy
   dtdz = dt/dz
 
-  !$acc data pcreate(Ex, Ey, Ez)
+  !$acc data create(Ex, Ey, Ez)
   !$acc kernels loop
   !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(u, v, w, A, B, C, shear)
   do k = klo, ku2
