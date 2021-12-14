@@ -247,6 +247,9 @@ module mpi_var
   real(dp), allocatable, dimension(:,:,:,:) :: rlbound_y, rrbound_y
   real(dp), allocatable, dimension(:,:,:,:) :: slbound_z, srbound_z
   real(dp), allocatable, dimension(:,:,:,:) :: rlbound_z, rrbound_z
+
+  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
+  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
   
 end module mpi_var
 !===============================================================================

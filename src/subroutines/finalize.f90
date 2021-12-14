@@ -28,6 +28,13 @@ subroutine deallocate_workspace
 
   !$py begin_statement
 
+  !$acc exit data delete(slbound_x, srbound_x, rlbound_x, rrbound_x, &
+  !$acc                  slbound_y, srbound_y, rlbound_y, rrbound_y, &
+  !$acc                  slbound_z, srbound_z, rlbound_z, rrbound_z)
+  deallocate(slbound_x, srbound_x, rlbound_x, rrbound_x, &
+          &  slbound_y, srbound_y, rlbound_y, rrbound_y, &
+          &  slbound_z, srbound_z, rlbound_z, rrbound_z)
+
   !$acc exit data delete(slbound, srbound, rlbound, rrbound)
   deallocate(slbound, srbound, rlbound, rrbound)
   
