@@ -416,6 +416,10 @@ subroutine allocate_workspace
   !$acc slbound_x(:,:,:,:), srbound_x(:,:,:,:), rlbound_x(:,:,:,:), rrbound_x(:,:,:,:), &
   !$acc slbound_y(:,:,:,:), srbound_y(:,:,:,:), rlbound_y(:,:,:,:), rrbound_y(:,:,:,:), &
   !$acc slbound_z(:,:,:,:), srbound_z(:,:,:,:), rlbound_z(:,:,:,:), rrbound_z(:,:,:,:))
+
+  allocate(slbound(ju1:ju2,ku1:ku2,1:nvar+3,3),srbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
+  allocate(rlbound(ju1:ju2,ku1:ku2,1:nvar+3,3),rrbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
+  !$acc enter data create(slbound(:,:,:,:), srbound(:,:,:,:), rlbound(:,:,:,:), rrbound(:,:,:,:))
   
   return
 end subroutine allocate_workspace
