@@ -86,12 +86,14 @@ subroutine boundary
 #endif
 
   ! Right face B-field
+  !$acc kernels
   !$OMP PARALLEL WORKSHARE
   uin(iu1:iu2-1,ju1:ju2,ku1:ku2,iA+3) = uin(iu1+1:iu2,ju1:ju2,ku1:ku2,iA)
   uin(iu1:iu2,ju1:ju2-1,ku1:ku2,iB+3) = uin(iu1:iu2,ju1+1:ju2,ku1:ku2,iB)
   uin(iu1:iu2,ju1:ju2,ku1:ku2-1,iC+3) = uin(iu1:iu2,ju1:ju2,ku1+1:ku2,iC)
   !$OMP END PARALLEL WORKSHARE
-
+  !$acc end kernels
+  
   return
 end subroutine boundary
 !===============================================================================
