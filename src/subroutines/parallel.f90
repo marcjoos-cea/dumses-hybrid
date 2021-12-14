@@ -246,7 +246,7 @@ subroutine boundary_x
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  !$acc data present(slbound, rlbound, rlbound, rrbound)
+  !$acc data present(slbound, srbound, rlbound, rrbound)
   
   size = (ju2 - ju1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (boundary_type(1) == 'periodic') then
@@ -266,7 +266,7 @@ subroutine boundary_x
         !$OMP END PARALLEL DO
         
 #if RDMA == 1
-        !$acc host_data use_device(slbound, rlbound, rlbound, rrbound)
+        !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
 #else
         !$acc update host(slbound, srbound)
 #endif
@@ -440,7 +440,7 @@ subroutine boundary_y
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  !$acc data present(slbound, rlbound, rlbound, rrbound)
+  !$acc data present(slbound, srbound, rlbound, rrbound)
 
   size = (iu2 - iu1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (nyslice > 1) then
@@ -528,7 +528,7 @@ subroutine boundary_z
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  !$acc data present(slbound, rlbound, rlbound, rrbound)
+  !$acc data present(slbound, srbound, rlbound, rrbound)
   
   size = (iu2 - iu1 + 1)*(ju2 - ju1 + 1)*(nvar + 3)*nghost
   if (nzslice > 1) then
