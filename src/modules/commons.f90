@@ -241,9 +241,12 @@ module mpi_var
   integer :: zleft     !< left neighbor of the current process, z-direction 
   integer :: zright    !< right neighbor of the current process, z-direction
 
-  real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
-  real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
-
+  real(dp), allocatable, dimension(:,:,:,:) :: slbound_x, srbound_x
+  real(dp), allocatable, dimension(:,:,:,:) :: rlbound_x, rrbound_x
+  real(dp), allocatable, dimension(:,:,:,:) :: slbound_y, srbound_y
+  real(dp), allocatable, dimension(:,:,:,:) :: rlbound_y, rrbound_y
+  real(dp), allocatable, dimension(:,:,:,:) :: slbound_z, srbound_z
+  real(dp), allocatable, dimension(:,:,:,:) :: rlbound_z, rrbound_z
   
 end module mpi_var
 !===============================================================================

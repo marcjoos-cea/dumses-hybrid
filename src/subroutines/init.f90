@@ -406,9 +406,16 @@ subroutine allocate_workspace
   !$acc rgstar(:,:,:), ugstar(:,:,:), vgstar(:,:,:), wgstar(:,:,:), bgstar(:,:,:), &
   !$acc cgstar(:,:,:), pgstar(:,:,:))
 
-  allocate(slbound(ju1:ju2,ku1:ku2,1:nvar+3,3),srbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
-  allocate(rlbound(ju1:ju2,ku1:ku2,1:nvar+3,3),rrbound(ju1:ju2,ku1:ku2,1:nvar+3,3))
-  !$acc enter data create(slbound(:,:,:,:), srbound(:,:,:,:), rlbound(:,:,:,:), rrbound(:,:,:,:))
+  allocate(slbound_x(ju1:ju2,ku1:ku2,1:nvar+3,3),srbound_x(ju1:ju2,ku1:ku2,1:nvar+3,3))
+  allocate(rlbound_x(ju1:ju2,ku1:ku2,1:nvar+3,3),rrbound_x(ju1:ju2,ku1:ku2,1:nvar+3,3))
+  allocate(slbound_y(iu1:iu2,ku1:ku2,1:nvar+3,3),srbound_y(iu1:iu2,ku1:ku2,1:nvar+3,3))
+  allocate(rlbound_y(iu1:iu2,ku1:ku2,1:nvar+3,3),rrbound_y(iu1:iu2,ku1:ku2,1:nvar+3,3))
+  allocate(slbound_z(iu1:iu2,ju1:ju2,1:nvar+3,3),srbound_z(iu1:iu2,ju1:ju2,1:nvar+3,3))
+  allocate(rlbound_z(iu1:iu2,ju1:ju2,1:nvar+3,3),rrbound_z(iu1:iu2,ju1:ju2,1:nvar+3,3))
+  !$acc enter data create( &
+  !$acc slbound_x(:,:,:,:), srbound_x(:,:,:,:), rlbound_x(:,:,:,:), rrbound_x(:,:,:,:), &
+  !$acc slbound_y(:,:,:,:), srbound_y(:,:,:,:), rlbound_y(:,:,:,:), rrbound_y(:,:,:,:), &
+  !$acc slbound_z(:,:,:,:), srbound_z(:,:,:,:), rlbound_z(:,:,:,:), rrbound_z(:,:,:,:))
   
   return
 end subroutine allocate_workspace

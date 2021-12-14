@@ -246,7 +246,7 @@ subroutine boundary_x
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  !$acc data present(slbound, srbound, rlbound, rrbound)
+  !$acc data present(slbound_x, srbound_x, rlbound_x, rrbound_x)
   
   size = (ju2 - ju1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (boundary_type(1) == 'periodic') then
@@ -255,44 +255,44 @@ subroutine boundary_x
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
         do k = ku1, ku2
            do j = ju1, ju2
-              slbound(j,k,:,1) = uin(iu1+3,j,k,:)
-              slbound(j,k,:,2) = uin(iu1+4,j,k,:)
-              slbound(j,k,:,3) = uin(iu1+5,j,k,:)
-              srbound(j,k,:,1) = uin(iu2-5,j,k,:)
-              srbound(j,k,:,2) = uin(iu2-4,j,k,:)
-              srbound(j,k,:,3) = uin(iu2-3,j,k,:)
+              slbound_x(j,k,:,1) = uin(iu1+3,j,k,:)
+              slbound_x(j,k,:,2) = uin(iu1+4,j,k,:)
+              slbound_x(j,k,:,3) = uin(iu1+5,j,k,:)
+              srbound_x(j,k,:,1) = uin(iu2-5,j,k,:)
+              srbound_x(j,k,:,2) = uin(iu2-4,j,k,:)
+              srbound_x(j,k,:,3) = uin(iu2-3,j,k,:)
            enddo
         enddo
         !$OMP END PARALLEL DO
         
 #if RDMA == 1
-        !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+        !$acc host_data use_device(slbound_x, srbound_x, rlbound_x, rrbound_x)
 #else
-        !$acc update host(slbound, srbound)
+        !$acc update host(slbound_x, srbound_x)
 #endif
-        call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, xleft, 10 &
-                        , rlbound, size, MPI_DOUBLE_PRECISION, xright, 10 &
+        call MPI_Sendrecv(slbound_x, size, MPI_DOUBLE_PRECISION, xleft, 10 &
+                        , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                         , MPI_COMM_WORLD, status, ierr)
      
-        call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, xright, 11 &
-                        , rrbound, size, MPI_DOUBLE_PRECISION, xleft, 11 &
+        call MPI_Sendrecv(srbound_x, size, MPI_DOUBLE_PRECISION, xright, 11 &
+                        , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                         , MPI_COMM_WORLD, status, ierr)
 #if RDMA == 1
         !$acc end host_data
 #else
-        !$acc update device(rlbound, rrbound)
+        !$acc update device(rlbound_x, rrbound_x)
 #endif
      
         !$acc kernels loop
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
         do k = ku1, ku2
            do j = ju1, ju2
-              uin(iu1  ,j,k,:) = rrbound(j,k,:,1)
-              uin(iu1+1,j,k,:) = rrbound(j,k,:,2)
-              uin(iu1+2,j,k,:) = rrbound(j,k,:,3)
-              uin(iu2-2,j,k,:) = rlbound(j,k,:,1)
-              uin(iu2-1,j,k,:) = rlbound(j,k,:,2)
-              uin(iu2  ,j,k,:) = rlbound(j,k,:,3)
+              uin(iu1  ,j,k,:) = rrbound_x(j,k,:,1)
+              uin(iu1+1,j,k,:) = rrbound_x(j,k,:,2)
+              uin(iu1+2,j,k,:) = rrbound_x(j,k,:,3)
+              uin(iu2-2,j,k,:) = rlbound_x(j,k,:,1)
+              uin(iu2-1,j,k,:) = rlbound_x(j,k,:,2)
+              uin(iu2  ,j,k,:) = rlbound_x(j,k,:,3)
            enddo
         enddo
         !$OMP END PARALLEL DO
@@ -304,34 +304,34 @@ subroutine boundary_x
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
            do k = ku1, ku2
               do j = ju1, ju2
-                 srbound(j,k,:,1) = uin(iu2-5,j,k,:)
-                 srbound(j,k,:,2) = uin(iu2-4,j,k,:)
-                 srbound(j,k,:,3) = uin(iu2-3,j,k,:)
+                 srbound_x(j,k,:,1) = uin(iu2-5,j,k,:)
+                 srbound_x(j,k,:,2) = uin(iu2-4,j,k,:)
+                 srbound_x(j,k,:,3) = uin(iu2-3,j,k,:)
               enddo
            enddo
            !$OMP END PARALLEL DO
            
 #if RDMA == 1
-           !$acc host_data use_device(srbound,rlbound)
+           !$acc host_data use_device(srbound_x,rlbound_x)
 #else
-           !$acc update host(srbound)
+           !$acc update host(srbound_x)
 #endif
-           call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, xright, 11 &
-                           , rlbound, size, MPI_DOUBLE_PRECISION, xright, 10 &
+           call MPI_Sendrecv(srbound_x, size, MPI_DOUBLE_PRECISION, xright, 11 &
+                           , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
 #if RDMA == 1
            !$acc end host_data
 #else
-           !$acc update device(rlbound)
+           !$acc update device(rlbound_x)
 #endif
 
            !$acc kernels loop
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
            do k = ku1, ku2
               do j = ju1, ju2
-                 uin(iu2-2,j,k,:) = rlbound(j,k,:,1)
-                 uin(iu2-1,j,k,:) = rlbound(j,k,:,2)
-                 uin(iu2  ,j,k,:) = rlbound(j,k,:,3)
+                 uin(iu2-2,j,k,:) = rlbound_x(j,k,:,1)
+                 uin(iu2-1,j,k,:) = rlbound_x(j,k,:,2)
+                 uin(iu2  ,j,k,:) = rlbound_x(j,k,:,3)
               enddo
            enddo
            !$OMP END PARALLEL DO
@@ -340,34 +340,34 @@ subroutine boundary_x
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
            do k = ku1, ku2
               do j = ju1, ju2
-                 slbound(j,k,:,1) = uin(iu1+3,j,k,:)
-                 slbound(j,k,:,2) = uin(iu1+4,j,k,:)
-                 slbound(j,k,:,3) = uin(iu1+5,j,k,:)
+                 slbound_x(j,k,:,1) = uin(iu1+3,j,k,:)
+                 slbound_x(j,k,:,2) = uin(iu1+4,j,k,:)
+                 slbound_x(j,k,:,3) = uin(iu1+5,j,k,:)
               enddo
            enddo
            !$OMP END PARALLEL DO
 
 #if RDMA == 1
-           !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+           !$acc host_data use_device(slbound_x, srbound_x, rlbound_x, rrbound_x)
 #else
-           !$acc update host(slbound, srbound)
+           !$acc update host(slbound_x, srbound_x)
 #endif
-           call MPI_sendrecv(slbound, size, MPI_DOUBLE_PRECISION, xleft, 10 &
-                           , rrbound, size, MPI_DOUBLE_PRECISION, xleft, 11 &
+           call MPI_sendrecv(slbound_x, size, MPI_DOUBLE_PRECISION, xleft, 10 &
+                           , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
 #if RDMA == 1
            !$acc end host_data
 #else
-           !$acc update device(rlbound, rrbound)
+           !$acc update device(rlbound_x, rrbound_x)
 #endif
            
            !$acc kernels loop
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
            do k = ku1, ku2
               do j = ju1, ju2
-                 uin(iu1  ,j,k,:) = rrbound(j,k,:,1)
-                 uin(iu1+1,j,k,:) = rrbound(j,k,:,2)
-                 uin(iu1+2,j,k,:) = rrbound(j,k,:,3)
+                 uin(iu1  ,j,k,:) = rrbound_x(j,k,:,1)
+                 uin(iu1+1,j,k,:) = rrbound_x(j,k,:,2)
+                 uin(iu1+2,j,k,:) = rrbound_x(j,k,:,3)
               enddo
            enddo
            !$OMP END PARALLEL DO
@@ -376,44 +376,44 @@ subroutine boundary_x
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
            do k = ku1, ku2
               do j = ju1, ju2
-                 slbound(j,k,:,1) = uin(iu1+3,j,k,:)
-                 slbound(j,k,:,2) = uin(iu1+4,j,k,:)
-                 slbound(j,k,:,3) = uin(iu1+5,j,k,:)
-                 srbound(j,k,:,1) = uin(iu2-5,j,k,:)
-                 srbound(j,k,:,2) = uin(iu2-4,j,k,:)
-                 srbound(j,k,:,3) = uin(iu2-3,j,k,:)
+                 slbound_x(j,k,:,1) = uin(iu1+3,j,k,:)
+                 slbound_x(j,k,:,2) = uin(iu1+4,j,k,:)
+                 slbound_x(j,k,:,3) = uin(iu1+5,j,k,:)
+                 srbound_x(j,k,:,1) = uin(iu2-5,j,k,:)
+                 srbound_x(j,k,:,2) = uin(iu2-4,j,k,:)
+                 srbound_x(j,k,:,3) = uin(iu2-3,j,k,:)
               enddo
            enddo
            !$OMP END PARALLEL DO
            
 #if RDMA == 1
-           !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+           !$acc host_data use_device(slbound_x, srbound_x, rlbound_x, rrbound_x)
 #else
-           !$acc update host(slbound, srbound)
+           !$acc update host(slbound_x, srbound_x)
 #endif
-           call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, xleft, 10 &
-                           , rlbound, size, MPI_DOUBLE_PRECISION, xright, 10 &
+           call MPI_Sendrecv(slbound_x, size, MPI_DOUBLE_PRECISION, xleft, 10 &
+                           , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
            
-           call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, xright, 11 &
-                           , rrbound, size, MPI_DOUBLE_PRECISION, xleft, 11 &
+           call MPI_Sendrecv(srbound_x, size, MPI_DOUBLE_PRECISION, xright, 11 &
+                           , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
 #if RDMA == 1
            !$acc end host_data
 #else
-           !$acc update device(rlbound, rrbound)
+           !$acc update device(rlbound_x, rrbound_x)
 #endif
            
            !$acc kernels loop
            !$OMP PARALLEL DO SCHEDULE(RUNTIME)
            do k = ku1, ku2
               do j = ju1, ju2
-                 uin(iu1  ,j,k,:) = rrbound(j,k,:,1)
-                 uin(iu1+1,j,k,:) = rrbound(j,k,:,2)
-                 uin(iu1+2,j,k,:) = rrbound(j,k,:,3)
-                 uin(iu2-2,j,k,:) = rlbound(j,k,:,1)
-                 uin(iu2-1,j,k,:) = rlbound(j,k,:,2)
-                 uin(iu2  ,j,k,:) = rlbound(j,k,:,3)
+                 uin(iu1  ,j,k,:) = rrbound_x(j,k,:,1)
+                 uin(iu1+1,j,k,:) = rrbound_x(j,k,:,2)
+                 uin(iu1+2,j,k,:) = rrbound_x(j,k,:,3)
+                 uin(iu2-2,j,k,:) = rlbound_x(j,k,:,1)
+                 uin(iu2-1,j,k,:) = rlbound_x(j,k,:,2)
+                 uin(iu2  ,j,k,:) = rlbound_x(j,k,:,3)
               enddo
            enddo
            !$OMP END PARALLEL DO
@@ -440,7 +440,7 @@ subroutine boundary_y
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  !$acc data present(slbound, srbound, rlbound, rrbound)
+  !$acc data present(slbound_y, srbound_y, rlbound_y, rrbound_y)
 
   size = (iu2 - iu1 + 1)*(ku2 - ku1 + 1)*(nvar + 3)*nghost
   if (nyslice > 1) then
@@ -448,32 +448,32 @@ subroutine boundary_y
      !$OMP PARALLEL DO SCHEDULE(RUNTIME)
      do k = ku1, ku2
         do i = iu1, iu2
-           slbound(i,k,:,1) = uin(i,ju1+3,k,:)
-           slbound(i,k,:,2) = uin(i,ju1+4,k,:)
-           slbound(i,k,:,3) = uin(i,ju1+5,k,:)
-           srbound(i,k,:,1) = uin(i,ju2-5,k,:)
-           srbound(i,k,:,2) = uin(i,ju2-4,k,:)
-           srbound(i,k,:,3) = uin(i,ju2-3,k,:)
+           slbound_y(i,k,:,1) = uin(i,ju1+3,k,:)
+           slbound_y(i,k,:,2) = uin(i,ju1+4,k,:)
+           slbound_y(i,k,:,3) = uin(i,ju1+5,k,:)
+           srbound_y(i,k,:,1) = uin(i,ju2-5,k,:)
+           srbound_y(i,k,:,2) = uin(i,ju2-4,k,:)
+           srbound_y(i,k,:,3) = uin(i,ju2-3,k,:)
         enddo
      enddo
      !$OMP END PARALLEL DO
      
 #if RDMA == 1
-     !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+     !$acc host_data use_device(slbound_y, srbound_y, rlbound_y, rrbound_y)
 #else
-     !$acc update host(slbound, srbound)
+     !$acc update host(slbound_y, srbound_y)
 #endif
-     call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, yleft, 10 &
-          , rlbound, size, MPI_DOUBLE_PRECISION, yright, 10 &
+     call MPI_Sendrecv(slbound_y, size, MPI_DOUBLE_PRECISION, yleft, 10 &
+          , rlbound_y, size, MPI_DOUBLE_PRECISION, yright, 10 &
           , MPI_COMM_WORLD, status, ierr)
      
-     call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, yright, 11 &
-          , rrbound, size, MPI_DOUBLE_PRECISION, yleft, 11 &
+     call MPI_Sendrecv(srbound_y, size, MPI_DOUBLE_PRECISION, yright, 11 &
+          , rrbound_y, size, MPI_DOUBLE_PRECISION, yleft, 11 &
           , MPI_COMM_WORLD, status, ierr)
 #if RDMA == 1
      !$acc end host_data
 #else
-     !$acc update device(rlbound, rrbound)
+     !$acc update device(rlbound_y, rrbound_y)
 #endif
         
      if ((yposition == (nyslice-1)) .and. &
@@ -482,13 +482,13 @@ subroutine boundary_y
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
         do k = ku1, ku2
            do i = iu1, iu2
-              uin(i,ju2-2,k,1:6) = rlbound(i,k,1:6,1)
-              uin(i,ju2-2,k,nvar:nvar+3) = rlbound(i,k,nvar:nvar+3,1)
-              uin(i,ju2-1,k,:) = rlbound(i,k,:,2)
-              uin(i,ju2  ,k,:) = rlbound(i,k,:,3)
-              uin(i,ju1  ,k,:) = rrbound(i,k,:,1)
-              uin(i,ju1+1,k,:) = rrbound(i,k,:,2)
-              uin(i,ju1+2,k,:) = rrbound(i,k,:,3)
+              uin(i,ju2-2,k,1:6) = rlbound_y(i,k,1:6,1)
+              uin(i,ju2-2,k,nvar:nvar+3) = rlbound_y(i,k,nvar:nvar+3,1)
+              uin(i,ju2-1,k,:) = rlbound_y(i,k,:,2)
+              uin(i,ju2  ,k,:) = rlbound_y(i,k,:,3)
+              uin(i,ju1  ,k,:) = rrbound_y(i,k,:,1)
+              uin(i,ju1+1,k,:) = rrbound_y(i,k,:,2)
+              uin(i,ju1+2,k,:) = rrbound_y(i,k,:,3)
            enddo
         enddo
         !$OMP END PARALLEL DO
@@ -497,12 +497,12 @@ subroutine boundary_y
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
         do k = ku1, ku2
            do i = iu1, iu2
-              uin(i,ju2-2,k,:) = rlbound(i,k,:,1)
-              uin(i,ju2-1,k,:) = rlbound(i,k,:,2)
-              uin(i,ju2  ,k,:) = rlbound(i,k,:,3)
-              uin(i,ju1  ,k,:) = rrbound(i,k,:,1)
-              uin(i,ju1+1,k,:) = rrbound(i,k,:,2)
-              uin(i,ju1+2,k,:) = rrbound(i,k,:,3)
+              uin(i,ju2-2,k,:) = rlbound_y(i,k,:,1)
+              uin(i,ju2-1,k,:) = rlbound_y(i,k,:,2)
+              uin(i,ju2  ,k,:) = rlbound_y(i,k,:,3)
+              uin(i,ju1  ,k,:) = rrbound_y(i,k,:,1)
+              uin(i,ju1+1,k,:) = rrbound_y(i,k,:,2)
+              uin(i,ju1+2,k,:) = rrbound_y(i,k,:,3)
            enddo
         enddo
         !$OMP END PARALLEL DO
@@ -528,7 +528,7 @@ subroutine boundary_z
   integer, dimension(MPI_STATUS_SIZE) :: status
   integer :: ierr
 
-  !$acc data present(slbound, srbound, rlbound, rrbound)
+  !$acc data present(slbound_z, srbound_z, rlbound_z, rrbound_z)
   
   size = (iu2 - iu1 + 1)*(ju2 - ju1 + 1)*(nvar + 3)*nghost
   if (nzslice > 1) then
@@ -536,32 +536,32 @@ subroutine boundary_z
      !$OMP PARALLEL DO SCHEDULE(RUNTIME)
      do j = ju1, ju2
         do i = iu1, iu2
-           slbound(i,j,:,1) = uin(i,j,ku1+3,:)
-           slbound(i,j,:,2) = uin(i,j,ku1+4,:)
-           slbound(i,j,:,3) = uin(i,j,ku1+5,:)
-           srbound(i,j,:,1) = uin(i,j,ku2-5,:)
-           srbound(i,j,:,2) = uin(i,j,ku2-4,:)
-           srbound(i,j,:,3) = uin(i,j,ku2-3,:)
+           slbound_z(i,j,:,1) = uin(i,j,ku1+3,:)
+           slbound_z(i,j,:,2) = uin(i,j,ku1+4,:)
+           slbound_z(i,j,:,3) = uin(i,j,ku1+5,:)
+           srbound_z(i,j,:,1) = uin(i,j,ku2-5,:)
+           srbound_z(i,j,:,2) = uin(i,j,ku2-4,:)
+           srbound_z(i,j,:,3) = uin(i,j,ku2-3,:)
         enddo
      enddo
      !$OMP END PARALLEL DO
      
 #if RDMA == 1
-     !$acc host_data use_device(slbound, srbound, rlbound, rrbound)
+     !$acc host_data use_device(slbound_z, srbound_z, rlbound_z, rrbound_z)
 #else
-     !$acc update host(slbound, srbound)
+     !$acc update host(slbound_z, srbound_z)
 #endif
-     call MPI_Sendrecv(slbound, size, MPI_DOUBLE_PRECISION, zleft, 10 &
-                     , rlbound, size, MPI_DOUBLE_PRECISION, zright, 10 &
+     call MPI_Sendrecv(slbound_z, size, MPI_DOUBLE_PRECISION, zleft, 10 &
+                     , rlbound_z, size, MPI_DOUBLE_PRECISION, zright, 10 &
                      , MPI_COMM_WORLD, status, ierr)
      
-     call MPI_Sendrecv(srbound, size, MPI_DOUBLE_PRECISION, zright, 11 &
-                     , rrbound, size, MPI_DOUBLE_PRECISION, zleft, 11 &
+     call MPI_Sendrecv(srbound_z, size, MPI_DOUBLE_PRECISION, zright, 11 &
+                     , rrbound_z, size, MPI_DOUBLE_PRECISION, zleft, 11 &
                      , MPI_COMM_WORLD, status, ierr)
 #if RDMA == 1
      !$acc end host_data
 #else
-     !$acc update device(rlbound, rrbound)
+     !$acc update device(rlbound_z, rrbound_z)
 #endif
      
      if ((zposition > 0) .or. (boundary_type(3) == 'periodic')) then
@@ -569,9 +569,9 @@ subroutine boundary_z
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
         do j = ju1, ju2
            do i = iu1, iu2
-              uin(i,j,ku1  ,:) = rrbound(i,j,:,1)
-              uin(i,j,ku1+1,:) = rrbound(i,j,:,2)
-              uin(i,j,ku1+2,:) = rrbound(i,j,:,3)
+              uin(i,j,ku1  ,:) = rrbound_z(i,j,:,1)
+              uin(i,j,ku1+1,:) = rrbound_z(i,j,:,2)
+              uin(i,j,ku1+2,:) = rrbound_z(i,j,:,3)
            enddo
         enddo
         !$OMP END PARALLEL DO
@@ -582,9 +582,9 @@ subroutine boundary_z
         !$OMP PARALLEL DO SCHEDULE(RUNTIME)
         do j = ju1, ju2
            do i = iu1, iu2
-              uin(i,j,ku2-2,:) = rlbound(i,j,:,1)
-              uin(i,j,ku2-1,:) = rlbound(i,j,:,2)
-              uin(i,j,ku2  ,:) = rlbound(i,j,:,3)
+              uin(i,j,ku2-2,:) = rlbound_z(i,j,:,1)
+              uin(i,j,ku2-1,:) = rlbound_z(i,j,:,2)
+              uin(i,j,ku2  ,:) = rlbound_z(i,j,:,3)
            enddo
         enddo
         !$OMP END PARALLEL DO
