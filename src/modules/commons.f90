@@ -264,3 +264,14 @@ module oacc_params
   integer, parameter :: blocky_primitive=4
 
 end module oacc_params
+!===============================================================================
+!> NCCL variables module
+!===============================================================================
+module nccl_var
+  use nccl
+  
+  type(ncclUniqueId) :: nccl_uid
+  type(ncclResult) :: nccl_ierr
+  type(ncclComm) :: nccl_comm
+  
+end module nccl_var

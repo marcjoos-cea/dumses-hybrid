@@ -23,6 +23,10 @@ subroutine init_parallel
 #if OACC == 1
   use openacc
 #endif
+#if NCCL == 1
+  use nccl
+  use nccl_var
+#endif
   use params
   use mpi_var
   implicit none
@@ -32,6 +36,12 @@ subroutine init_parallel
   integer :: i
   integer :: ierr
 
+#if NCCL == 1
+  ! NCCL_UNIQUE_ID_BYTES = 128; see nccl.h
+  character(LEN=128) :: nccl_uid_internal
+  integer :: nccl_uid_internal_size
+#endif
+  
 #if MPI == 1
   ! Initialize MPI environment
   required = MPI_THREAD_FUNNELED
@@ -67,8 +77,24 @@ subroutine init_parallel
   !         & , merge("<-- provided", "            " &
   !         & , provided == MPI_THREAD_MULTIPLE)
   ! endif
-#endif
 
+# if NCCL == 1
+  print*, "enter nccl init", mype
+  if (mype == 0) then
+     nccl_ierr = ncclGetUniqueId(nccl_uid)
+  end if
+
+  nccl_uid_internal_size = sizeof(nccl_uid%internal)
+  write(nccl_uid_internal, "(128(A1))") nccl_uid%internal
+
+  call MPI_Bcast(nccl_uid_internal, nccl_uid_internal_size, MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
+  print*, "exit bcast", mype
+  
+  nccl_ierr = ncclCommInitRank(nccl_comm, npes, nccl_uid, mype)
+  print*, "exit nccl init", mype
+#endif
+#endif
+  
 #if OACC == 1
   call acc_init(acc_device_nvidia)
   nthreads = acc_get_num_devices(acc_device_nvidia)
@@ -142,7 +168,11 @@ subroutine finalize_mpi
 #if OACC == 1
   use openacc
 #endif
+#if NCCL == 1
+  use nccl
+#endif
   use mpi_var
+  use nccl_var
   implicit none
   
   integer :: error=0, ierr
@@ -151,6 +181,10 @@ subroutine finalize_mpi
   call acc_shutdown(acc_device_nvidia)
 #endif
 
+#if NCCL == 1
+  nccl_ierr = ncclCommDestroy(nccl_comm)
+#endif
+  
 #if MPI == 1
   ! With OpenMPI, MPI freezes on MPI_Finalize(); MPI_Abort() helps to quit MPI 
   ! without freezing, but there must be a cleaner way to do that...
@@ -424,9 +458,13 @@ end subroutine boundary_x
 !===============================================================================
 subroutine boundary_y
   use mpi
+#if NCCL == 1
+  use nccl
+#endif
   use variables
   use params
   use mpi_var
+  use nccl_var
   implicit none
 
   integer :: size
@@ -451,12 +489,23 @@ subroutine boundary_y
         enddo
      enddo
      !$OMP END PARALLEL DO
-     
+
 #if RDMA == 1
      !$acc host_data use_device(slbound_y, srbound_y, rlbound_y, rrbound_y)
 #else
      !$acc update host(slbound_y, srbound_y)
 #endif
+#if NCCL == 1
+     nccl_ierr = ncclGroupStart()
+     nccl_ierr = ncclSend(slbound_y, size, ncclDouble, yleft, nccl_comm, 0)
+     nccl_ierr = ncclSend(rlbound_y, size, ncclDouble, yright, nccl_comm, 0)
+     nccl_ierr = ncclGroupEnd()
+
+     nccl_ierr = ncclGroupStart()
+     nccl_ierr = ncclSend(srbound_y, size, ncclDouble, yright, nccl_comm, 0)
+     nccl_ierr = ncclSend(rrbound_y, size, ncclDouble, yleft, nccl_comm, 0)
+     nccl_ierr = ncclGroupEnd()
+#else     
      call MPI_Sendrecv(slbound_y, size, MPI_DOUBLE_PRECISION, yleft, 10 &
           , rlbound_y, size, MPI_DOUBLE_PRECISION, yright, 10 &
           , MPI_COMM_WORLD, status, ierr)
@@ -464,12 +513,13 @@ subroutine boundary_y
      call MPI_Sendrecv(srbound_y, size, MPI_DOUBLE_PRECISION, yright, 11 &
           , rrbound_y, size, MPI_DOUBLE_PRECISION, yleft, 11 &
           , MPI_COMM_WORLD, status, ierr)
+#endif
 #if RDMA == 1
      !$acc end host_data
 #else
      !$acc update device(rlbound_y, rrbound_y)
 #endif
-        
+     
      if ((yposition == (nyslice-1)) .and. &
           (boundary_type(2) /= "periodic")) then
         !$acc kernels loop
