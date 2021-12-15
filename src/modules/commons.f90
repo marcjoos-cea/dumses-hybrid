@@ -216,7 +216,6 @@ module variables
   ! Time variables
   real(dp) :: dt   !< timestep
   real(dp) :: time !< time
-  !$acc declare create(dt)
 
   ! Output variables
   integer :: ndump !< # of the current output

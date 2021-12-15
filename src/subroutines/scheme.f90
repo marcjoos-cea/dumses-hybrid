@@ -117,9 +117,6 @@ subroutine godunov
 
   !$py begin_statement
 
-  !$acc data create(qm, qp, qRT, qRB, qLT, qLB, gravin)
-  !$acc data create(dq, bfc, dbfc)
-
   !$py start_timing Face-centered magnetic field
   call fc_magnetic(bfc)
   !$py end_timing Face-centered magnetic field
@@ -143,7 +140,6 @@ subroutine godunov
   call trace1d(dq, qm, qp)
 #endif
   !$py end_timing Trace
-  !$acc end data
 
   !$py start_timing Gravity predictor
   if (rhs) then
@@ -158,13 +154,12 @@ subroutine godunov
   endif
   !$py end_timing Gravity predictor
 
-  !$acc data create(fgodunov, fgodunov_pre, flux)
   !$py start_timing Riemann
   !!$py call_solver riemann (qm, qp, fgodunov, fgodunov_pre)
   call riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   !$py end_timing Riemann
 
-  !$acc data create(emfx, emfy, emfz)
+  !!$acc data create(emfx, emfy, emfz)
   !$py start_timing Riemann magnetic
 #if NDIM > 1
   !!$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfz, 3)
@@ -185,7 +180,6 @@ subroutine godunov
 #if NDIM == 3
   if (boundary_type(1) == 'shearingbox') then
      !$py start_timing Shearing flux
-     !$acc update host(dt)
      call shearing_flux(time+half*dt)
      !$py end_timing Shearing flux
   endif
@@ -194,9 +188,6 @@ subroutine godunov
   !$py start_timing Update
   call update(fgodunov_pre)
   !$py end_timing Update
-  !$acc end data
-  !$acc end data
-  !$acc end data
 
   return
 end subroutine godunov
