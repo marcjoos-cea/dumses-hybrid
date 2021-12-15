@@ -51,7 +51,6 @@ subroutine boundary
      call outery_boundary
 #endif
      !$py start_timing shearing boundary
-     !$acc update host(dt)
      call shearing_boundary(time+dt)
      !$py end_timing shearing boundary
   endif

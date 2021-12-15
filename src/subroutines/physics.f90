@@ -43,10 +43,8 @@ subroutine compute_dt(dt)
   call primitive(zero)
 
   dt = courant*dx/smallc
-  !$acc update device(dt)
-
-  !$acc kernels loop private(rho, vx, vy, vz, p, bx, by, bz, c2, b2, d2, cf, velx, vely, velz) &
-  !$acc reduction(min: dt)
+  
+  !$acc kernels loop reduction(min: dt) present(qin)
   !$OMP PARALLEL DO REDUCTION(MIN: dt) SCHEDULE(RUNTIME) PRIVATE(c2, b2, d2) &
   !$OMP PRIVATE(cf, velx, vely, velz, rho, vx, vy, vz, p, bx, by, bz)
   do k = 1, nz
@@ -126,17 +124,14 @@ subroutine compute_dt(dt)
      enddo
   enddo
   !$OMP END PARALLEL DO
-
-  !$acc update host(dt)
+  
 #if MPI == 1
   dt_proc = courant*dt
   call MPI_Allreduce(dt_proc, dt, 1, MPI_DOUBLE_PRECISION, MPI_MIN &
        , MPI_COMM_WORLD, ierr)
-  !$acc update device(dt)
 #else
   dt = courant*dt
 #endif
-  !$acc update device(dt)
 
   return
 end subroutine compute_dt

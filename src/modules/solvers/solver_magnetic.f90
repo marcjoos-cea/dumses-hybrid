@@ -255,7 +255,7 @@ subroutine llf(qLL, qRL, qLR, qRR, dt, emf_tmp)
   implicit none
 
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
-  real(dp), intent(in), value :: dt
+  real(dp), intent(in) :: dt
   real(dp), intent(out) :: emf_tmp
 
   real(dp) :: E, rl, pl, ul, al, bl, cl, rr, pr, ur, ar, br, cr, ploc, proc
@@ -375,7 +375,7 @@ subroutine hlld(qLL, qRL, qLR, qRR, dt, emf_tmp)
   implicit none
 
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
-  real(dp), intent(in), value :: dt
+  real(dp), intent(in) :: dt
   real(dp), intent(out) :: emf_tmp
 
   real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB, E, c2, b2, d2
@@ -567,7 +567,7 @@ subroutine upwind(qLL, qRL, qLR, qRR, dt, emf_tmp)
 
 
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
-  real(dp), intent(in), value :: dt
+  real(dp), intent(in) :: dt
   real(dp), intent(out) :: emf_tmp
 
   real(dp) :: E, ul, ur, bl, br, vel_info, flux_x, flux_y
