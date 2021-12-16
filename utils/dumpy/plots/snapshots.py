@@ -3,16 +3,11 @@
 # \brief
 # \b DUMSES-Hybrid:
 # These are functions to plot snapshots of DUMSES-Hybrid simulations
-# \author
-# Marc Joos <marc.joos@cea.fr>, Sebastien Fromang
 # \copyright
-# Copyrights 2013-2015, CEA.
+# Copyrights 2013-2021, CEA.
 # This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 # <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 # <http://www.gnu.org/licenses/>
-# \date
-# \b created:          05-13-2015 
-# \b last \b modified: 06-16-2015
 
 #===============================================================================
 import re

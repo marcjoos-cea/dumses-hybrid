@@ -3,17 +3,11 @@
 # DUMSES-Hybrid:
 # DUMSES make script.
 # 
-# author:
-# Marc Joos <marc.joos@cea.fr>, Sebastien Fromang, Romain Teyssier, 
-# Patrick Hennebelle
 # copyright:
-# Copyrights 2013-2015, CEA
+# Copyrights 2013-2021, CEA
 # This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 # <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 # <http://www.gnu.org/licenses/>
-# date:
-# created:       12-15-2014
-# last modified: 06-25-2015
 #===============================================================================
 import os, sys, re, shutil
 sys.path.append('utils/pyutils/')

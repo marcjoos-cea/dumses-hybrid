@@ -6,17 +6,11 @@
 !! \details
 !! Contains init_parallel(), finalize_mpi(), grid_structure(), boundary_x()
 !! boundary_y(), boundary_z()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          04-15-2013 
-!! \b last \b modified: 05-20-2015
 !<
 !===============================================================================
 !> Initialize parallel libraries (MPI, OpenMP and OpenACC)

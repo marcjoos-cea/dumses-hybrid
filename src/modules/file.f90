@@ -5,17 +5,11 @@
 !! This is file modules; subroutines to manage data filename.
 !! \details
 !! Contains get_filename(), get_filename_r(), convtoasc()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          12-15-2014 
-!! \b last \b modified: 06-25-2015
 !<
 !===============================================================================
 module file

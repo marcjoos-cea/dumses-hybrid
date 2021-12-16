@@ -5,17 +5,11 @@
 !! This is history subroutines.
 !! \details
 !! Contains history()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Pierre Kestener, 
-!! Romain Teyssier, Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          07-07-2014 
-!! \b last \b modified: 07-07-2014
 !<
 !===============================================================================
 !> \brief

@@ -5,16 +5,11 @@
 !! This is FARGO algorithm subroutines.
 !! \details
 !! Contains fargo_update()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          01-06-2015
-!! \b last \b modified: 05-26-2015
 !<
 !===============================================================================
 !> Update the conservative variables after the MHD step using the FARGO algorithm

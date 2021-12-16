@@ -11,9 +11,6 @@
 # This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 # <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 # <http://www.gnu.org/licenses/>
-# \date
-# \b created:          05-23-2014 
-# \b last \b modified: 05-26-2014
 
 #===============================================================================
 import os, sys, glob

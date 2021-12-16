@@ -7,17 +7,11 @@
 !! Contains shearing_boundary(), shearing_flux(), shearing_emf(), 
 !! shearing_slope(), shearing_boundary_old(), shearing_flux_old(), 
 !! shearing_emf_old(), shearing_slope_old()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          02-20-2014
-!! \b last \b modified: 05-11-2015
 !<
 !===============================================================================
 !> Compute shearing boundary conditions

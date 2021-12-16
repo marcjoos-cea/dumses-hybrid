@@ -3,17 +3,11 @@
 !! \brief
 !! \b DUMSES-Hybrid:
 !! This is the main program.
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          04-15-2013 
-!! \b last \b modified: 06-24-2015
 !<
 !===============================================================================
 !>
@@ -21,18 +15,19 @@
 !! <center>
 !! <b>DUMSES-Hybrid</b>\n
 !! A versatile MHD grid code for astrophysics\n
-!! Copyrights 2013-2015, CEA, <a href="mailto:marc.joos@cea.fr">Marc Joos</a>, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier\n
+!! Copyrights 2013-2021, CEA, <a href="mailto:marc.joos@cea.fr">Marc Joos</a>, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier\n
 !! This software is distributed under the CeCILL-A & GNU/GPL licences (see 
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>)
 !! </center>
 !!
 !! Main Contributors to the code:
-!!  - <b>Code architecture</b>: <a href="mailto:marc.joos@cea.fr">Marc Joos</a>, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
-!!  - <b>Parallelization  </b>: Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
-!!  - <b>Hybridation      </b>: Marc Joos
-!!  - <b>MHD              </b>: Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
-!!  - <b>Parallel I/O     </b>: Marc Joos, Pierre Kestener
+!!  - Code architecture      : Marc Joos, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
+!!  - MPI parallelization    : Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
+!!  - OpenMP parallelization : Marc Joos
+!!  - OpenACC parallelization: Marc Joos, Damien Merret, Laëtitia Anton, Clément Fontenaille, Rémy Dubois
+!!  - MHD                    : Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
+!!  - Parallel I/O           : Marc Joos, Pierre Kestener
 !!
 !! \c DUMSES is a 3D MPI/OpenMP & MPI/OpenACC Eulerian second-order Godunov (magneto)hydrodynamic simulation code in cartesian, spherical and cylindrical coordinates.
 !!

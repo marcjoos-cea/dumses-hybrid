@@ -1,6 +1,6 @@
 This is MERCO: a tool to MERge and COnvert DUMSES outputs
 
-Copyrights 2013-2015, CEA, Marc Joos<marc.joos@cea.fr>, Sébastien Fromang
+Copyrights 2013-2021, CEA, Marc Joos<marc.joos@cea.fr>, Sébastien Fromang, Pierre Kestener
 This software is distributed under the CeCILL-A & GNU/GPL licences (see <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and <http://www.gnu.org/licenses/>)
 
 DUMSES is a 3D MPI/OpenMP & MPI/OpenACC Eulerian second-order Godunov (magneto)hydrodynamic simulation code in cartesian, spherical and cylindrical coordinates. MERCO offers the possibility to convert DUMSES output files from any format (Fortran binary, HDF5, parallel HDF5, parallel NetCDF) to any other format.

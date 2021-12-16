@@ -6,17 +6,11 @@
 !! shearing box.
 !! \details
 !! Contains user_init(), get_eta()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          03-04-2015
-!! \b last \b modified: 03-04-2015
 !<
 !===============================================================================
 !> User initialization

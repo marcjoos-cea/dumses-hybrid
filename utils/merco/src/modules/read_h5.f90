@@ -6,16 +6,11 @@
 !! \details
 !! Contains get_1d_int(), get_1d_real(), get_2d_real(), get_3d_real(),
 !! get_4d_real()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Pierre Kestener
 !! \copyright
-!! Copyrights 2014-2015, CEA.
+!! Copyrights 2014-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          29-08-2014
-!! \b last \b modified: 26-03-2015
 !<
 !===============================================================================
 module read_h5

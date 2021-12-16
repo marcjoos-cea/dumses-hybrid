@@ -6,18 +6,11 @@
 !! \details
 !! Contains xinner_ana(), xouter_ana(), yinner_ana(), youter_ana(),
 !! zinner_ana(), zouter_ana()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          05-07-2015 
-!! \b last modified:    05-18-2015 
-!! \b last \b modified: 
 !<
 !===============================================================================
 !> Compute boundary conditions in the x-direction, inner edge

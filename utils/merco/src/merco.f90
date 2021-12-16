@@ -4,16 +4,11 @@
 !! \b This is a merging and converting tool for DUMSES outputs
 !! \details
 !! Contains ...
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang
 !! \copyright
-!! Copyrights 2014-2015, CEA.
+!! Copyrights 2014-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          08-26-2014
-!! \b last \b modified: 05-28-2015
 !<
 !===============================================================================
 !> Merge and convert DUMSES output files

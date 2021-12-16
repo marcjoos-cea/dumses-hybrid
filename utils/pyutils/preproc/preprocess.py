@@ -7,13 +7,10 @@
 # \author
 # Marc Joos <marc.joos@cea.fr>
 # \copyright
-# Copyrights 2014-2015, CEA.
+# Copyrights 2014-2021, CEA.
 # This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 # <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 # <http://www.gnu.org/licenses/>
-# \date
-# \b created:          12-04-2014
-# \b last \b modified: 06-19-2015
 
 #===============================================================================
 import os

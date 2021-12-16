@@ -6,17 +6,11 @@
 !! \details
 !! Contains dump_1d_int(), dump_1d_real(), dump_2d_real(), dump_3d_real(),
 !! dump_4d_real()
-!! \author
-!! Marc Joos <marc.joos@cea.fr>, Sébastien Fromang, Romain Teyssier, 
-!! Patrick Hennebelle
 !! \copyright
-!! Copyrights 2013-2015, CEA.
+!! Copyrights 2013-2021, CEA.
 !! This file is distributed under the CeCILL-A & GNU/GPL licenses, see
 !! <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and
 !! <http://www.gnu.org/licenses/>
-!! \date
-!! \b created:          12-15-2014 
-!! \b last \b modified: 03-03-2015
 !<
 !===============================================================================
 module write_h5
