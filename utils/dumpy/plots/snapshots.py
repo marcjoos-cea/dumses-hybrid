@@ -110,7 +110,7 @@ def plot1d(data, var='rho', direction='x', xpos=None, ypos=None, zpos=None \
             if xmin: xmin = findPosition(xmin, data.x)
             if xmax: xmax = findPosition(xmax, data.x)
         if not xmin: xmin = 0
-        if not xmax: xmax = dictDat[dictDat.keys()[0]].shape[0]
+        if not xmax: xmax = dictDat[list(dictDat.keys())[0]].shape[0]
         if physTick:
             xlab  = "x/H"
             xlim  = (data.x[xmin], data.x[xmax-1])
@@ -136,7 +136,7 @@ def plot1d(data, var='rho', direction='x', xpos=None, ypos=None, zpos=None \
             if ymin: ymin = findPosition(ymin, data.y)
             if ymax: ymax = findPosition(ymax, data.y)
         if not ymin: ymin = 0
-        if not ymax: ymax = dictDat[dictDat.keys()[0]].shape[1]
+        if not ymax: ymax = dictDat[list(dictDat.keys())[0]].shape[1]
         if physTick:
             xlab  = "y/H"
             xlim  = (data.y[ymin], data.y[ymax-1])
@@ -162,7 +162,7 @@ def plot1d(data, var='rho', direction='x', xpos=None, ypos=None, zpos=None \
             if zmin: zmin = findPosition(zmin, data.z)
             if zmax: zmax = findPosition(zmax, data.z)
         if not zmin: zmin = 0
-        if not zmax: zmax = dictDat[dictDat.keys()[0]].shape[2]
+        if not zmax: zmax = dictDat[list(dictDat.keys())[0]].shape[2]
         if physTick:
             xlab  = "z/H"
             xlim  = (data.z[zmin], data.z[zmin-1])

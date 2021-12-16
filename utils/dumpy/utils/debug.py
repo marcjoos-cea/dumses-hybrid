@@ -56,11 +56,11 @@ def comp(ndump, var="rho", dir1="old/", dir2="new/", xmin=None, xmax=None \
     if not isinstance(var, list): var = [var]
 
     if not xmin: xmin = 0
-    if not xmax: xmax = dod[dod.keys()[0]].shape[0]
+    if not xmax: xmax = dod[list(dod.keys())[0]].shape[0]
     if not ymin: ymin = 0
-    if not ymax: ymax = dod[dod.keys()[0]].shape[1]
+    if not ymax: ymax = dod[list(dod.keys())[0]].shape[1]
     if not zmin: zmin = 0
-    if not zmax: zmax = dod[dod.keys()[0]].shape[2]
+    if not zmax: zmax = dod[list(dod.keys())[0]].shape[2]
     ldim = np.array([xmax - xmin, ymax - ymin, zmax - zmin])
     ldim = ldim[ldim > 1]
     try:
