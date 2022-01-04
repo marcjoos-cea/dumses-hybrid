@@ -243,6 +243,8 @@ module mpi_var
 
   real(dp), allocatable, dimension(:,:,:,:) :: slbound, srbound
   real(dp), allocatable, dimension(:,:,:,:) :: rlbound, rrbound
+
+  integer :: local_mype, local_comm
   
 end module mpi_var
 !===============================================================================

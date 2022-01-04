@@ -24,6 +24,7 @@ subroutine init_parallel
   use openacc
 #endif
 #if NCCL == 1
+  use cudafor
   use nccl
   use nccl_var
 #endif
@@ -79,32 +80,39 @@ subroutine init_parallel
   ! endif
 
 # if NCCL == 1
-  print*, "enter nccl init", mype
+  call MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, mype, MPI_INFO_NULL &
+       , local_comm, ierr)  
+  call MPI_Comm_rank(local_comm, local_mype, ierr)
+  ierr = cudaSetDevice(local_mype)
+  write(*,*) 'cudasetdevice', ierr
+  call acc_init(acc_get_device_type())
+  call acc_set_device_num(local_mype, acc_get_device_type()) 
+  nthreads = acc_get_num_devices(acc_device_nvidia)
+  
   if (mype == 0) then
      nccl_ierr = ncclGetUniqueId(nccl_uid)
+     write(*,*) 'getuniqueid: ', nccl_ierr
   end if
 
   nccl_uid_internal_size = sizeof(nccl_uid%internal)
-  write(nccl_uid_internal, "(128(A1))") nccl_uid%internal
-
-  call MPI_Bcast(nccl_uid_internal, nccl_uid_internal_size, MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
-  print*, "exit bcast", mype
+  call MPI_Bcast(nccl_uid%internal, nccl_uid_internal_size, MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
+  write(*,*) 'bcast: ', ierr
   
   nccl_ierr = ncclCommInitRank(nccl_comm, npes, nccl_uid, mype)
-  print*, "exit nccl init", mype
+  write(*,*) 'comminitrank: ', nccl_ierr
 #endif
 #endif
   
-#if OACC == 1
-  call acc_init(acc_device_nvidia)
-  nthreads = acc_get_num_devices(acc_device_nvidia)
-  
-  do i = 0, npes-1
-     if (i == mype) then
-        call acc_set_device_num(i, acc_device_nvidia)
-     endif
-  enddo
-#endif
+!#if OACC == 1
+!  call acc_init(acc_device_nvidia)
+!  nthreads = acc_get_num_devices(acc_device_nvidia)
+!  
+!  do i = 0, npes-1
+!     if (i == mype) then
+!        call acc_set_device_num(i, acc_device_nvidia)
+!     endif
+!  enddo
+!#endif
 
   !$OMP PARALLEL
   !$OMP MASTER
@@ -264,9 +272,13 @@ end subroutine grid_structure
 !===============================================================================
 subroutine boundary_x
   use mpi
+#if NCCL == 1
+  use nccl
+#endif
   use variables
   use params
   use mpi_var
+  use nccl_var
   implicit none
 
   integer :: size
@@ -298,6 +310,17 @@ subroutine boundary_x
 #else
         !$acc update host(slbound_x, srbound_x)
 #endif
+#if NCCL == 1
+     nccl_ierr = ncclGroupStart()
+     nccl_ierr = ncclSend(slbound_x, size, ncclDouble, xleft, nccl_comm, 10)
+     nccl_ierr = ncclRecv(rlbound_x, size, ncclDouble, xright, nccl_comm, 10)
+     nccl_ierr = ncclGroupEnd()
+
+     nccl_ierr = ncclGroupStart()
+     nccl_ierr = ncclSend(srbound_x, size, ncclDouble, xright, nccl_comm, 11)
+     nccl_ierr = ncclRecv(rrbound_x, size, ncclDouble, xleft, nccl_comm, 11)
+     nccl_ierr = ncclGroupEnd()
+#else     
         call MPI_Sendrecv(slbound_x, size, MPI_DOUBLE_PRECISION, xleft, 10 &
                         , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                         , MPI_COMM_WORLD, status, ierr)
@@ -305,6 +328,7 @@ subroutine boundary_x
         call MPI_Sendrecv(srbound_x, size, MPI_DOUBLE_PRECISION, xright, 11 &
                         , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                         , MPI_COMM_WORLD, status, ierr)
+#endif
 #if RDMA == 1
         !$acc end host_data
 #else
@@ -344,9 +368,16 @@ subroutine boundary_x
 #else
            !$acc update host(srbound_x)
 #endif
+#if NCCL == 1
+           nccl_ierr = ncclGroupStart()
+           nccl_ierr = ncclSend(srbound_x, size, ncclDouble, xright, nccl_comm, 11)
+           nccl_ierr = ncclRecv(rlbound_x, size, ncclDouble, xright, nccl_comm, 10)
+           nccl_ierr = ncclGroupEnd()
+#else     
            call MPI_Sendrecv(srbound_x, size, MPI_DOUBLE_PRECISION, xright, 11 &
                            , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
+#endif
 #if RDMA == 1
            !$acc end host_data
 #else
@@ -380,9 +411,16 @@ subroutine boundary_x
 #else
            !$acc update host(slbound_x, srbound_x)
 #endif
+#if NCCL == 1
+           nccl_ierr = ncclGroupStart()
+           nccl_ierr = ncclSend(slbound_x, size, ncclDouble, xleft, nccl_comm, 10)
+           nccl_ierr = ncclRecv(rrbound_x, size, ncclDouble, xleft, nccl_comm, 11)
+           nccl_ierr = ncclGroupEnd()
+#else     
            call MPI_sendrecv(slbound_x, size, MPI_DOUBLE_PRECISION, xleft, 10 &
                            , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
+#endif
 #if RDMA == 1
            !$acc end host_data
 #else
@@ -419,6 +457,17 @@ subroutine boundary_x
 #else
            !$acc update host(slbound_x, srbound_x)
 #endif
+#if NCCL == 1
+           nccl_ierr = ncclGroupStart()
+           nccl_ierr = ncclSend(slbound_x, size, ncclDouble, xleft, nccl_comm, 10)
+           nccl_ierr = ncclRecv(rlbound_x, size, ncclDouble, xright, nccl_comm, 10)
+           nccl_ierr = ncclGroupEnd()
+
+           nccl_ierr = ncclGroupStart()
+           nccl_ierr = ncclSend(srbound_x, size, ncclDouble, xright, nccl_comm, 11)
+           nccl_ierr = ncclRecv(rrbound_x, size, ncclDouble, xleft, nccl_comm, 11)
+           nccl_ierr = ncclGroupEnd()
+#else     
            call MPI_Sendrecv(slbound_x, size, MPI_DOUBLE_PRECISION, xleft, 10 &
                            , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
@@ -426,6 +475,7 @@ subroutine boundary_x
            call MPI_Sendrecv(srbound_x, size, MPI_DOUBLE_PRECISION, xright, 11 &
                            , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
+#endif
 #if RDMA == 1
            !$acc end host_data
 #else
@@ -490,6 +540,11 @@ subroutine boundary_y
      enddo
      !$OMP END PARALLEL DO
 
+     !- DEBUG
+     !$acc update host(slbound_y, srbound_y, rlbound_y, rrbound_y)
+     !write(*,*) "in:", mype, time, slbound_y(iu1+nx/2,ku1+nz/2,1,1)
+     !- DEBUG
+     
 #if RDMA == 1
      !$acc host_data use_device(slbound_y, srbound_y, rlbound_y, rrbound_y)
 #else
@@ -498,27 +553,34 @@ subroutine boundary_y
 #if NCCL == 1
      nccl_ierr = ncclGroupStart()
      nccl_ierr = ncclSend(slbound_y, size, ncclDouble, yleft, nccl_comm, 0)
-     nccl_ierr = ncclSend(rlbound_y, size, ncclDouble, yright, nccl_comm, 0)
+     !write(*,*) mype, nccl_ierr
+     nccl_ierr = ncclRecv(rlbound_y, size, ncclDouble, yright, nccl_comm, 0)
      nccl_ierr = ncclGroupEnd()
 
      nccl_ierr = ncclGroupStart()
      nccl_ierr = ncclSend(srbound_y, size, ncclDouble, yright, nccl_comm, 0)
-     nccl_ierr = ncclSend(rrbound_y, size, ncclDouble, yleft, nccl_comm, 0)
+     nccl_ierr = ncclRecv(rrbound_y, size, ncclDouble, yleft, nccl_comm, 0)
      nccl_ierr = ncclGroupEnd()
 #else     
      call MPI_Sendrecv(slbound_y, size, MPI_DOUBLE_PRECISION, yleft, 10 &
-          , rlbound_y, size, MPI_DOUBLE_PRECISION, yright, 10 &
-          , MPI_COMM_WORLD, status, ierr)
+                     , rlbound_y, size, MPI_DOUBLE_PRECISION, yright, 10 &
+                     , MPI_COMM_WORLD, status, ierr)
      
      call MPI_Sendrecv(srbound_y, size, MPI_DOUBLE_PRECISION, yright, 11 &
-          , rrbound_y, size, MPI_DOUBLE_PRECISION, yleft, 11 &
-          , MPI_COMM_WORLD, status, ierr)
+                     , rrbound_y, size, MPI_DOUBLE_PRECISION, yleft, 11 &
+                     , MPI_COMM_WORLD, status, ierr)
 #endif
 #if RDMA == 1
      !$acc end host_data
 #else
      !$acc update device(rlbound_y, rrbound_y)
 #endif
+
+     !- DEBUG
+     !$acc update host(slbound_y, srbound_y, rlbound_y, rrbound_y)
+     !write(*,*) "out:", mype, time, rlbound_y(iu1+nx/2,ku1+nz/2,1,1)
+     !- DEBUG
+
      
      if ((yposition == (nyslice-1)) .and. &
           (boundary_type(2) /= "periodic")) then
@@ -562,9 +624,13 @@ end subroutine boundary_y
 !===============================================================================
 subroutine boundary_z
   use mpi
+#if NCCL == 1
+  use nccl
+#endif
   use variables
   use params
   use mpi_var
+  use nccl_var
   implicit none
 
   integer :: size
@@ -595,6 +661,17 @@ subroutine boundary_z
 #else
      !$acc update host(slbound_z, srbound_z)
 #endif
+#if NCCL == 1
+     nccl_ierr = ncclGroupStart()
+     nccl_ierr = ncclSend(slbound_z, size, ncclDouble, zleft, nccl_comm, 30)
+     nccl_ierr = ncclRecv(rlbound_z, size, ncclDouble, zright, nccl_comm, 30)
+     nccl_ierr = ncclGroupEnd()
+
+     nccl_ierr = ncclGroupStart()
+     nccl_ierr = ncclSend(srbound_z, size, ncclDouble, zright, nccl_comm, 31)
+     nccl_ierr = ncclRecv(rrbound_z, size, ncclDouble, zleft, nccl_comm, 31)
+     nccl_ierr = ncclGroupEnd()
+#else     
      call MPI_Sendrecv(slbound_z, size, MPI_DOUBLE_PRECISION, zleft, 10 &
                      , rlbound_z, size, MPI_DOUBLE_PRECISION, zright, 10 &
                      , MPI_COMM_WORLD, status, ierr)
@@ -602,6 +679,7 @@ subroutine boundary_z
      call MPI_Sendrecv(srbound_z, size, MPI_DOUBLE_PRECISION, zright, 11 &
                      , rrbound_z, size, MPI_DOUBLE_PRECISION, zleft, 11 &
                      , MPI_COMM_WORLD, status, ierr)
+#endif
 #if RDMA == 1
      !$acc end host_data
 #else
