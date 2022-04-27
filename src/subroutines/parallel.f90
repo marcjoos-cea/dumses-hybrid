@@ -22,9 +22,9 @@ subroutine init_parallel
   !$ use OMP_LIB
 #if OACC == 1
   use openacc
+  use cudafor
 #endif
 #if NCCL == 1
-  use cudafor
   use nccl
   use nccl_var
 #endif

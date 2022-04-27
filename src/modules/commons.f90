@@ -142,6 +142,7 @@ module params
   real(dp) :: gamma=5.d0/3.d0   !< ratio of specific heats \f$ \gamma \f$
   logical  :: rhs=.false.       !< .true. if there is a non-zero source term
   !$acc declare copyin(gamma)
+  !$acc declare copyin(ciso)
 
   ! Mesh parameters
   real(dp) :: dx !< resolution in x-direction
@@ -270,10 +271,11 @@ end module oacc_params
 !> NCCL variables module
 !===============================================================================
 module nccl_var
+#if NCCL == 1
   use nccl
   
   type(ncclUniqueId) :: nccl_uid
   type(ncclResult) :: nccl_ierr
   type(ncclComm) :: nccl_comm
-  
+#endif
 end module nccl_var

@@ -1,15 +1,6 @@
 # This is DUMSES - hybrid version
 
-Copyrights 2013-2021, CEA, Marc Joos<marc.joos@cea.fr>, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
-This software is distributed under the CeCILL-A & GNU/GPL licences (see <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html> and <http://www.gnu.org/licenses/>)
-
-Main Contributors to the code:
- - Code architecture      : Marc Joos, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
- - MPI parallelization    : Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
- - OpenMP parallelization : Marc Joos
- - OpenACC parallelization: Marc Joos, Damien Merret, Laëtitia Anton, Clément Fontenaille, Rémy Dubois
- - MHD                    : Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
- - Parallel I/O           : Marc Joos, Pierre Kestener
+Copyrights 2013-2021, CEA, Authors (see AUTHORS file)
 
 DUMSES is a 3D MPI/OpenMP & MPI/OpenACC Eulerian second-order Godunov (magneto)hydrodynamic simulation code in cartesian, spherical and cylindrical coordinates.
 

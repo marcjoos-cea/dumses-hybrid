@@ -522,13 +522,13 @@ subroutine hll(ql, qr, fgodunov)
   sgnm = sign(one, a)
   al   = a; ar = a
             
-  #if ISO == 1
+#if ISO == 1
   ploc = rl*ciso**2
   proc = rr*ciso**2
-  #else
+#else
   ploc = pl
   proc = pr
-  #endif  
+#endif  
   
   ! left variables
   ecin = half*(ul*ul + vl*vl + wl*wl)*rl
@@ -644,13 +644,13 @@ subroutine hlld(ql, qr, fgodunov, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar
   sgnm = sign(one, a)
   al   = a; ar = a
   
-  #if ISO == 1
+#if ISO == 1
   ploc = rl*ciso**2
   proc = rr*ciso**2
-  #else
+#else
   ploc = pl
   proc = pr
-  #endif
+#endif
   
   ! left variables
   ecinl  = half*(ul*ul + vl*vl + wl*wl)*rl

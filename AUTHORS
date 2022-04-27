@@ -1,0 +1,9 @@
+Copyrights 2013-2021, CEA, Marc Joos<marc.joos@cea.fr>, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier and the following authors.
+
+Main Contributors to the code:
+ - Code architecture      : Marc Joos, Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
+ - MPI parallelization    : Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
+ - OpenMP parallelization : Marc Joos
+ - OpenACC parallelization: Marc Joos, Damien Merret, Laëtitia Anton, Clément Fontenaille, Rémy Dubois
+ - MHD                    : Sébastien Fromang, Patrick Hennebelle, Romain Teyssier
+ - Parallel I/O           : Marc Joos, Pierre Kestener
