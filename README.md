@@ -7,23 +7,82 @@ DUMSES is a 3D MPI/OpenMP & MPI/OpenACC Eulerian second-order Godunov (magneto)h
 
 ## CONFIGURATION/COMPILATION
 
-Configuration script from the previous versions was removed. For the moment you can use an example Makefile from makefiles/ directory.
+Configuration is done with Autotools; please launch `./configure --help` for more details and available options. Note that 
+MPI and OpenMP are activated by default. Explicit OpenACC activation will deactivate OpenMP. Problem used by default is 
+`magnetic_loop`.
 
-Options that can be modified at compile time are:
- - `NDIM`    : number of dimensions of the problem (1,2,3)
- - `ISO`     : isothermal computation (0,1)
- - `GEOM`    : geometry of the problem (cartesian, cylindrical, spherical)
- - `MPI`     : MPI parallelization (0, 1)
- - `HDF5`    : HDF5 libary usage (0, 1)
- - `PHDF5`   : Parallel HDF5 library usage (0, 1)
- - `PNCDF`   : Parallel NetCDF library usage (0, 1)
- - `PGIFC`   : PGI or Nvidia compiler usage (0, 1)
- - `OACC`    : OpenACC parallization (0, 1)
- - `RDMA`    : GPU-Direct RDMA usage with OpenACC (0, 1)
- - `NCCL`    : NCCL communication (under development) (0, 1)
- - `PROBLEM` : path to the problem (`src/problem/<problem>`)
+For example, if you want to compile with GCC and MPI the `stratified` problem:
+```
+$ FC=gfortran ./configure --with-problem=stratified
+```
+If you want to compile with NVHPC and OpenACC:
+```
+$ FC=nvfortran ./configure --enable-openacc
+```
 
-If you want to run a version with additional timer, you could use the Python preprocessor:
+Note also that GPU RDMA (direct communication of device variables on GPU) will be activated by default if MPI and OpenACC are activated. 
+No more checks are done for now to check that the given MPI implementation actually supports GPU RDMA.
+
+If you want to check if your MPI implementation supports GPU RDMA, you could compile'n'run this simple example:
+
+```
+program ring
+  use mpi
+  use openacc
+  implicit none
+
+  integer :: nproc, rank, comm, ierr
+  integer, dimension(MPI_STATUS_SIZE) :: status
+  integer :: ngpu
+  integer :: i
+  integer, allocatable, dimension(:) :: buf
+
+  call MPI_Init(ierr)
+  comm = MPI_COMM_WORLD
+
+  call MPI_Comm_size(comm, nproc, ierr)
+  call MPI_Comm_rank(comm, rank, ierr)
+  if (rank  == 0) print '("Running with ", I3, " MPI processes")', nproc
+
+  ngpu = acc_get_num_devices(acc_device_nvidia)
+  if (rank == 0) print '("Open ACC - # of devices available: ", I2)', ngpu
+  call MPI_Barrier(comm, ierr)
+
+  do i = 0, nproc - 1
+     if (i == rank) then
+        call acc_set_device_num(i, acc_device_nvidia)
+     end if
+  end do
+
+  allocate(buf(2))
+
+  buf = rank
+  !$acc data copy(buf)
+  
+  !$acc kernels
+  buf = buf*2
+  !$acc end kernels
+  
+  !$acc host_data use_device(buf)
+  call MPI_Sendrecv(buf(1), 1, MPI_INTEGER, mod(rank+1,nproc), 1, &
+                    buf(2), 1, MPI_INTEGER, mod(rank-1,nproc), 1, &
+                    comm, status, ierr)
+  !$acc end host_data
+  !$acc end data
+  print '("rank: ", I2, " - send and recv: ", I3, I3)', rank, buf(1), buf(2)
+
+  deallocate(buf)
+
+  call MPI_Finalize(ierr)
+
+end program ring
+```
+
+If it works, it is probably OK. If not, you might want to turn off RDMA with --with-rdma=0
+
+### Additional timers
+
+If you want to run a version with additional timer,s you could use the Python preprocessor:
 
 ```
 $ python3
@@ -34,7 +93,7 @@ tree = FileTree('./src')
 tree.processAllFiles()
 
 $ cd tmp/
-$ cp ../makefiles/Makefile.<version>; make
+$ ./configure <...>; make
 ```
 
 ## RUNNING THE CODE
