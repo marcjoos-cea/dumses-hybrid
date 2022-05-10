@@ -636,7 +636,6 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-GEOM
 PRBSUBFILES
 PRBSUBDIRS
 PRBFILES
@@ -647,6 +646,7 @@ MODFILES
 USRFILES
 SUBFILES
 SRCFILES
+GEOM
 ISO
 NDIM
 RDMA
@@ -17119,6 +17119,8 @@ fi
 
 fi
 
+fi
+
 PNCDF=0
 
 if test x$with_pnetcdf != x; then :
@@ -17688,8 +17690,8 @@ case $with_geometry in #(
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unrecognized value for '--with-geometry', setting default to 'cartesian'" >&5
 $as_echo "$as_me: WARNING: Unrecognized value for '--with-geometry', setting default to 'cartesian'" >&2;}
 	GEOM=1
-
-fi
+] ;;
+esac
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for source files" >&5
@@ -17797,13 +17799,12 @@ _ACEOF
 # Ultrix sh set writes to stderr and can't be redirected directly,
 # and sets the high bit in the cache file unless we assign to the vars.
 (
-  for ac_var in `(set) 2>&1 | sed -n 's/^\(a-zA-Z_a-zA-Z0-9_*\)=.*/\1/p'`; do
+  for ac_var in `(set) 2>&1 | sed -n 's/^\([a-zA-Z_][a-zA-Z0-9_]*\)=.*/\1/p'`; do
     eval ac_val=\$$ac_var
     case $ac_val in #(
     *${as_nl}*)
       case $ac_var in #(
-      *_cv_* ;;
-esac { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cache variable $ac_var contains a newline" >&5
+      *_cv_*) { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cache variable $ac_var contains a newline" >&5
 $as_echo "$as_me: WARNING: cache variable $ac_var contains a newline" >&2;} ;;
       esac
       case $ac_var in #(

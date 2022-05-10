@@ -166,6 +166,7 @@ AS_IF([test x$with_hdf5 != x], [
 	       [AC_SUBST([HDF5], [1])],
                [test x$HDF5_TYPE = xparallel],
 	       [AC_SUBST([PHDF5], [1])])
+  ])
 ])
 
 dnl Check for Parallel NetCDF
