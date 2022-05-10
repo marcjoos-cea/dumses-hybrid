@@ -692,14 +692,14 @@ OPENMP_FCFLAGS
 ENABLE_OPENACC_FALSE
 ENABLE_OPENACC_TRUE
 OACC
+FPPFLAGS
+MODFLAG
 NVIDIA_FALSE
 NVIDIA_TRUE
 INTEL_FALSE
 INTEL_TRUE
 GCC_FALSE
 GCC_TRUE
-FPPFLAGS
-MODFLAG
 AM_LDFLAGS
 AM_FCFLAGS
 PGIFC_FALSE
@@ -15771,29 +15771,18 @@ fi
 
 
 if test x$FC = xgfortran -a x$ac_cv_env_FCFLAGS_set = x; then :
-  MODFLAG="-J"
-
   FCFLAGS="-g -O3 -fbacktrace"
 
-  FPPFLAGS=" -x f95-cpp-input"
-
-  AM_FCFLAGS="-ffree-line-length-0"
 
 fi
 if test x$FC = xifort -a x$ac_cv_env_FCFLAGS_set = x; then :
-  MODFLAG="-module "
-
   FCFLAGS="-g -O3 -traceback"
 
-  FPPFLAGS="-fpp"
 
 fi
 if test x$FC = xnvfortran -a x$ac_cv_env_FCFLAGS_set = x; then :
-  MODFLAG="-module "
-
   FCFLAGS="-g -O3 -traceback"
 
-  FPPFLAGS="-Mpreprocess"
 
 fi
 
@@ -15823,12 +15812,29 @@ fi
 
 if test x$FC = xgfortran; then :
   CC=gcc
+  MODFLAG="-J"
+
+  FPPFLAGS=" -x f95-cpp-input"
+
+  AM_FCFLAGS="-ffree-line-length-0"
+
+
 fi
 if test x$FC = xifort; then :
   CC=icc
+  MODFLAG="-module "
+
+  FPPFLAGS="-fpp"
+
+
 fi
 if test x$FC = xnvfortran; then :
   CC=nvc
+  MODFLAG="-module "
+
+  FPPFLAGS="-Mpreprocess"
+
+
 fi
 
 ac_ext=${ac_fc_srcext-f}

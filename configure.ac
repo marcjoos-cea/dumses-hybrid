@@ -80,26 +80,35 @@ AC_SUBST([AM_FCFLAGS], [])
 AC_SUBST([AM_LDFLAGS], [])
 
 AS_IF([test x$FC = xgfortran -a x$ac_cv_env_FCFLAGS_set = x],
-  AC_SUBST([MODFLAG], ["-J"])
   AC_SUBST([FCFLAGS], ["-g -O3 -fbacktrace"])
-  AC_SUBST([FPPFLAGS], [" -x f95-cpp-input"])
-  AC_SUBST([AM_FCFLAGS], ["-ffree-line-length-0"]))
+)
 AS_IF([test x$FC = xifort -a x$ac_cv_env_FCFLAGS_set = x],
-  AC_SUBST([MODFLAG], ["-module "])
   AC_SUBST([FCFLAGS], ["-g -O3 -traceback"])
-  AC_SUBST([FPPFLAGS], ["-fpp"]))
+)
 AS_IF([test x$FC = xnvfortran -a x$ac_cv_env_FCFLAGS_set = x],
-  AC_SUBST([MODFLAG], ["-module "])
   AC_SUBST([FCFLAGS], ["-g -O3 -traceback"])
-  AC_SUBST([FPPFLAGS], ["-Mpreprocess"]))
+)
 
 dnl Define which compiler family we are currently using
 AM_CONDITIONAL([GCC], [test x$FC = xgfortran])
 AM_CONDITIONAL([INTEL], [test x$FC = xifort])
 AM_CONDITIONAL([NVIDIA], [test x$FC = xnvfortran])
-AS_IF([test x$FC = xgfortran], [CC=gcc])
-AS_IF([test x$FC = xifort], [CC=icc])
-AS_IF([test x$FC = xnvfortran], [CC=nvc])
+AS_IF([test x$FC = xgfortran], 
+  [CC=gcc
+  AC_SUBST([MODFLAG], ["-J"])
+  AC_SUBST([FPPFLAGS], [" -x f95-cpp-input"])
+  AC_SUBST([AM_FCFLAGS], ["-ffree-line-length-0"])
+  ])
+AS_IF([test x$FC = xifort], 
+  [CC=icc
+  AC_SUBST([MODFLAG], ["-module "])
+  AC_SUBST([FPPFLAGS], ["-fpp"])
+  ])
+AS_IF([test x$FC = xnvfortran], 
+  [CC=nvc
+  AC_SUBST([MODFLAG], ["-module "])
+  AC_SUBST([FPPFLAGS], ["-Mpreprocess"])
+  ])
 
 dnl Fortran checks
 AC_FC_FREEFORM
