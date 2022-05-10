@@ -122,7 +122,7 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
      !$acc present(qm, qp, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar, fgodunov)
      !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(bn_mean, im, jm, km, shear) &
      !$OMP PRIVATE(Ekin, Emag, Etot, rl, pl, ul, vl, wl, cl, bl, al, rr, pr) &
-     !$OMP PRIVATE(ur, vr, wr, cr, br, ar, ro, uo, vo, wo, bo, co, ptoto)
+     !$OMP PRIVATE(ur, vr, wr, cr, br, ar, ql, qr, tfgodunov)
      do k = klo, khi
         !$acc loop vector(blocky_solver) independent
         do j = jlo, jhi

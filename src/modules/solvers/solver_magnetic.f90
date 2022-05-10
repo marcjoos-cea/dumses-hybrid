@@ -107,19 +107,10 @@ subroutine riemann_solver_magnetic(qRT, qRB, qLT, qLB, emf, idim)
   !$acc kernels loop private(qLL, qRL, qLR, qRR) present(x(:), emf(:,:,:), &
   !$acc qrt(:,:,:,:,:), qlb(:,:,:,:,:), qlt(:,:,:,:,:), qrb(:,:,:,:,:)) independent
   !$OMP PARALLEL DO SCHEDULE(RUNTIME) PRIVATE(irt, ilt, jrt, jlt, krt, klt) &
+  !$OMP PRIVATE(qLL, qRL, qLR, qRR) &
   !$OMP PRIVATE(rLL, rLR, rRL, rRR, pLL, pLR, pRL, pRR, uLL, uLR, uRL, uRR) &
   !$OMP PRIVATE(vLL, vLR, vRL, vRR, ALL, ALR, ARL, ARR, BLL, BLR, BRL, BRR) &
-  !$OMP PRIVATE(CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR, emf_tmp, shear) &
-  !$OMP PRIVATE( SL, SR, SB, ST, SAL, SAR, SAT, SAB, E, c2) &
-  !$OMP PRIVATE( b2, d2, cLLx, cRLx, cLRx, cRRx, cLLy, cRLy, cLRy, cRRy) &
-  !$OMP PRIVATE( cfastLLx, cfastRLx, cfastLRx, cfastRRx, cfastLLy, cfastRLy, cfastLRy, cfastRRy, calfvenR, calfvenL) &
-  !$OMP PRIVATE( calfvenT, calfvenB, vLLx, vRLx, vLRx, vRRx, vLLy, vRLy, vLRy, vRRy) &
-  !$OMP PRIVATE( PtotLL, PtotLR, PtotRL, PtotRR, rcLLx, rcLRx, rcRLx, rcRRx, rcLLy, rcLRy) &
-  !$OMP PRIVATE( rcRLy, rcRRy, ustar, vstar, rstarLLx, rstarLRx, rstarRLx, rstarRRx, rstarLLy, rstarLRy) &
-  !$OMP PRIVATE( rstarRLy, rstarRRy, rstarLL, rstarLR, rstarRL, rstarRR, AstarLL, AstarLR, AstarRL, AstarRR) &
-  !$OMP PRIVATE( BstarLL, BstarLR, BstarRL, BstarRR, EstarLLx, EstarLRx, EstarRLx, EstarRRx, EstarLLy, EstarLRy) &
-  !$OMP PRIVATE( EstarRLy, EstarRRy, EstarLL, EstarLR, EstarRL, EstarRR, AstarT, AstarB, BstarR, BstarL) &
-  !$OMP PRIVATE( SLustar, SRustar, STvstar, SBvstar, SARSAL, SATSAB, sqrtrstarLL, sqrtrstarRR, sqrtrstarRL, sqrtrstarLR)
+  !$OMP PRIVATE(CLL, CLR, CRL, CRR, ELL, ELR, ERL, ERR, emf_tmp, shear) 
   do k = klo, khi
      !$acc loop vector(blocky_solver_mag) independent
      do j = jlo, jhi
