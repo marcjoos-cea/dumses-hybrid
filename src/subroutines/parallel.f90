@@ -173,16 +173,16 @@ subroutine finalize_mpi
   
   integer :: error=0, ierr
 
-#if OACC == 1
-  call acc_shutdown(acc_device_nvidia)
-#endif
-
 #if NCCL == 1
   nccl_ierr = ncclCommDestroy(nccl_comm)
 #endif
   
 #if MPI == 1
   call MPI_Finalize(ierr)
+#endif
+
+#if OACC == 1
+  call acc_shutdown(acc_device_nvidia)
 #endif
 
   return
