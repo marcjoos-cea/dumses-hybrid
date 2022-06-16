@@ -649,7 +649,7 @@ SRCFILES
 GEOM
 ISO
 NDIM
-RDMA
+CUDA_AWARE_MPI
 NCCL_FLIBS
 NCCL_FFLAGS
 NCCL_LIBS
@@ -839,7 +839,7 @@ enable_openacc
 with_hdf5
 with_pnetcdf
 with_nccl
-with_rdma
+with_cuda_aware_mpi
 with_problem
 with_ndim
 with_iso
@@ -1510,7 +1510,9 @@ Optional Packages:
                           Check for NCCL support. If it is used,
                           communications will be done with NCCL library
                           instead of MPI library.
-  --with-rdma[0,1]        Activate/deactivate RDMA communications on GPU
+  --with-cuda-aware-mpi[0,1]
+                          Activate/deactivate CUDA-aware MPI communications on
+                          GPU
   --with-problem[user defined problem]
                           Provide problem to compile
   --with-ndim[number of dimensions]
@@ -15499,11 +15501,11 @@ fi
 
 
 
-# Check whether --with-rdma was given.
-if test "${with_rdma+set}" = set; then :
-  withval=$with_rdma;
+# Check whether --with-cuda-aware-mpi was given.
+if test "${with_cuda_aware_mpi+set}" = set; then :
+  withval=$with_cuda_aware_mpi;
 else
-  with_rdma=1
+  with_cuda_aware_mpi=1
 
 fi
 
@@ -15533,7 +15535,7 @@ fi
 if test "${with_iso+set}" = set; then :
   withval=$with_iso;
 else
-  with_iso=1
+  with_iso=0
 
 fi
 
@@ -17632,19 +17634,19 @@ fi
 fi
 
 
-RDMA=0
+CUDA_AWARE_MPI=0
 
-if test x$with_rdma != x; then :
+if test x$with_cuda_aware_mpi != x; then :
 
   if test "x$MPIFC" != x; then :
 
     if test "x$HAVE_OPENACC" = x1; then :
 
-      RDMA=1
+      CUDA_AWARE_MPI=1
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are not using MPI or OpenACC; deactivate GPU RDMA" >&5
-$as_echo "$as_me: WARNING: You are not using MPI or OpenACC; deactivate GPU RDMA" >&2;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are not using MPI or OpenACC; deactivate CUDA-aware MPI" >&5
+$as_echo "$as_me: WARNING: You are not using MPI or OpenACC; deactivate CUDA-aware MPI" >&2;}
 
 fi
 fi

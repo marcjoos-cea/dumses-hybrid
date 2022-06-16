@@ -41,10 +41,10 @@ AC_ARG_WITH([nccl],
   []
   )
 
-AC_ARG_WITH([rdma],
-  [AS_HELP_STRING([--with-rdma@<:@[0,1]@:>@], [Activate/deactivate RDMA communications on GPU])],
+AC_ARG_WITH([cuda-aware-mpi],
+  [AS_HELP_STRING([--with-cuda-aware-mpi@<:@[0,1]@:>@], [Activate/deactivate CUDA-aware MPI communications on GPU])],
   [],
-  [with_rdma=1]
+  [with_cuda_aware_mpi=1]
   )
 
 AC_ARG_WITH([problem],
@@ -62,7 +62,7 @@ AC_ARG_WITH([ndim],
 AC_ARG_WITH([iso],
   [AS_HELP_STRING([--with-iso@<:@[0,1]@:>@], [Activate/deactivate isothermal computation])],
   [],
-  [with_iso=1]
+  [with_iso=0]
   )
 
 AC_ARG_WITH([geometry],
@@ -198,15 +198,15 @@ dnl TODO: need to check if mpi is cuda-aware
 dnl  - for openmpi: use ompi_info ?
 dnl  - can mpich be cuda-aware?
 dnl For now we suppose that if MPI & OpenACC are defined
-dnl one will want to use GPU RDMA
+dnl one will want to use CUDA-aware MPI
 
-dnl Check if RDMA communications are activated on GPU
-AC_SUBST([RDMA], [0])
-AS_IF([test x$with_rdma != x], [
+dnl Check if CUDA-aware MPI communications are activated on GPU
+AC_SUBST([CUDA_AWARE_MPI], [0])
+AS_IF([test x$with_cuda_aware_mpi != x], [
   AS_IF([test "x$MPIFC" != x], [
     AS_IF([test "x$HAVE_OPENACC" = x1], [
-      AC_SUBST([RDMA], [1])],
-      [AC_MSG_WARN([You are not using MPI or OpenACC; deactivate GPU RDMA])]
+      AC_SUBST([CUDA_AWARE_MPI], [1])],
+      [AC_MSG_WARN([You are not using MPI or OpenACC; deactivate CUDA-aware MPI])]
     )])
 ])
 

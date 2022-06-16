@@ -289,7 +289,7 @@ subroutine boundary_x
         enddo
         !$OMP END PARALLEL DO
         
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
         !$acc host_data use_device(slbound_x, srbound_x, rlbound_x, rrbound_x)
 #else
         !$acc update host(slbound_x, srbound_x)
@@ -313,7 +313,7 @@ subroutine boundary_x
                         , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                         , MPI_COMM_WORLD, status, ierr)
 #endif
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
         !$acc end host_data
 #else
         !$acc update device(rlbound_x, rrbound_x)
@@ -350,7 +350,7 @@ subroutine boundary_x
            enddo
            !$OMP END PARALLEL DO
            
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
            !$acc host_data use_device(srbound_x,rlbound_x)
 #else
            !$acc update host(srbound_x)
@@ -363,7 +363,7 @@ subroutine boundary_x
                            , rlbound_x, size, MPI_DOUBLE_PRECISION, xright, 10 &
                            , MPI_COMM_WORLD, status, ierr)
 #endif
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
            !$acc end host_data
 #else
            !$acc update device(rlbound_x)
@@ -391,7 +391,7 @@ subroutine boundary_x
            enddo
            !$OMP END PARALLEL DO
 
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
            !$acc host_data use_device(slbound_x, srbound_x, rlbound_x, rrbound_x)
 #else
            !$acc update host(slbound_x, srbound_x)
@@ -404,7 +404,7 @@ subroutine boundary_x
                            , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
 #endif
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
            !$acc end host_data
 #else
            !$acc update device(rlbound_x, rrbound_x)
@@ -435,7 +435,7 @@ subroutine boundary_x
            enddo
            !$OMP END PARALLEL DO
            
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
            !$acc host_data use_device(slbound_x, srbound_x, rlbound_x, rrbound_x)
 #else
            !$acc update host(slbound_x, srbound_x)
@@ -455,7 +455,7 @@ subroutine boundary_x
                            , rrbound_x, size, MPI_DOUBLE_PRECISION, xleft, 11 &
                            , MPI_COMM_WORLD, status, ierr)
 #endif
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
            !$acc end host_data
 #else
            !$acc update device(rlbound_x, rrbound_x)
@@ -522,7 +522,7 @@ subroutine boundary_y
      enddo
      !$OMP END PARALLEL DO
      
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
      !$acc host_data use_device(slbound_y, srbound_y, rlbound_y, rrbound_y)
 #else
      !$acc update host(slbound_y, srbound_y)
@@ -546,7 +546,7 @@ subroutine boundary_y
                      , rrbound_y, size, MPI_DOUBLE_PRECISION, yleft, 11 &
                      , MPI_COMM_WORLD, status, ierr)
 #endif
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
      !$acc end host_data
 #else
      !$acc update device(rlbound_y, rrbound_y)
@@ -626,7 +626,7 @@ subroutine boundary_z
      enddo
      !$OMP END PARALLEL DO
      
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
      !$acc host_data use_device(slbound_z, srbound_z, rlbound_z, rrbound_z)
 #else
      !$acc update host(slbound_z, srbound_z)
@@ -650,7 +650,7 @@ subroutine boundary_z
                      , rrbound_z, size, MPI_DOUBLE_PRECISION, zleft, 11 &
                      , MPI_COMM_WORLD, status, ierr)
 #endif
-#if RDMA == 1
+#if CUDA_AWARE_MPI == 1
      !$acc end host_data
 #else
      !$acc update device(rlbound_z, rrbound_z)
