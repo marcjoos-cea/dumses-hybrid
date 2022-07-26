@@ -45,11 +45,14 @@ subroutine init_parallel
   
 #if MPI == 1
   ! Initialize MPI environment
+#if _OPENMP
   required = MPI_THREAD_FUNNELED
   ! required can take a value in: MPI_THREAD_SINGLE, MPI_THREAD_FUNNELED, 
   ! MPI_THREAD_SERIALIZED, MPI_THREAD_MULTIPLE
   call MPI_Init_Thread(required, provided, ierr)
-  !call MPI_Init(ierr)
+#else
+  call MPI_Init(ierr)
+#endif
 
   call MPI_Comm_Size(MPI_COMM_WORLD, npes, ierr)
   call MPI_Comm_Rank(MPI_COMM_WORLD, mype, ierr)
