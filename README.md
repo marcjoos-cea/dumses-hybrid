@@ -1,6 +1,6 @@
 # This is DUMSES - hybrid version
 
-Copyrights 2013-2021, CEA, Authors (see AUTHORS file)
+Copyrights 2013-2022, CEA, Authors (see AUTHORS file)
 
 DUMSES is a 3D MPI/OpenMP & MPI/OpenACC Eulerian second-order Godunov (magneto)hydrodynamic simulation code in cartesian, spherical and cylindrical coordinates.
 
@@ -20,10 +20,13 @@ If you want to compile with NVHPC and OpenACC:
 $ FC=nvfortran ./configure --enable-openacc
 ```
 
-Note also that GPU RDMA (direct communication of device variables on GPU) will be activated by default if MPI and OpenACC are activated. 
-No more checks are done for now to check that the given MPI implementation actually supports GPU RDMA.
+Note that the default optimization level is `-O3`. If you define explicitely `FCFLAGS`, please note that you will have to specify the optimization level you want.
+With NVHPC, targetting GPU, one would be advised to use `FCFLAGS='-O3 -gpu=<cc-arch>,nordc'`, `-gpu=nordc` flag allowing to gain a few percents of performance.
 
-If you want to check if your MPI implementation supports GPU RDMA, you could compile'n'run this simple example:
+Note also that CUDA-aware MPI (direct communication of device variables on GPU) will be activated by default if MPI and OpenACC are activated. 
+No more checks are done for now to check that the given MPI implementation actually is CUDA-aware.
+
+If you want to check if your MPI implementation is CUDA-aware, you could compile'n'run this simple example:
 
 ```
 program ring
@@ -78,11 +81,11 @@ program ring
 end program ring
 ```
 
-If it works, it is probably OK. If not, you might want to turn off RDMA with --with-rdma=0
+If it works, it is probably OK. If not, you might want to turn off CUDA-aware MPI with --with-cuda-aware-mpi=0
 
 ### Additional timers
 
-If you want to run a version with additional timer,s you could use the Python preprocessor:
+If you want to run a version with additional timers, you could use the Python preprocessor:
 
 ```
 $ python3
