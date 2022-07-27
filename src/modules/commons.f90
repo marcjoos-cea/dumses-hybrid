@@ -49,6 +49,8 @@ module const
   real(dp), parameter :: sixth   = 0.16666666666666667d0 !< 1/6
   real(dp), parameter :: pi      = 2.d0*asin(1.d0)       !< \f$ \pi \f$
   real(dp), parameter :: twopi   = 4.d0*asin(1.d0)       !< \f$ 2 \pi \f$
+  real(dp), parameter :: smallr=1.d-10    !< Dimensioned small constant
+  real(dp), parameter :: smallc=1.d-10    !< Dimensioned small constant
 
   ! Number of dimensions
 #ifndef NDIM
@@ -93,6 +95,29 @@ module params
   integer :: kf1                 !< flux left edge index, z-direction 
   integer :: kf2                 !< flux right edge index, z-direction
 
+  ! Mesh parameters
+  real(dp) :: dx !< resolution in x-direction
+  real(dp) :: dy !< resolution in y-direction
+  real(dp) :: dz !< resolution in z-direction
+
+  ! Scheme parameters
+  integer, parameter :: iroe=1            !< Roe solver index
+  integer, parameter :: illf=2            !< Lax-Friedrich solver index
+  integer, parameter :: ihll=3            !< HLL solver index
+  integer, parameter :: ihlld=4           !< HLLD solver index
+  integer, parameter :: iupwind=5         !< Upwind solver index
+  integer, parameter :: iacoustic=6       !< Hydro solver index
+  integer, parameter :: ihllf=7           !< HLLF solver index
+  integer, parameter :: ihlla=8           !< HLLA solver index
+  
+end module params
+!===============================================================================
+!> Input parameters
+!===============================================================================
+module input_params
+  use precision
+  use const
+  
   ! Start parameters
   integer  :: restart         !< output index for restart
   real(dp) :: tlim=1000.      !< limit time
@@ -108,19 +133,9 @@ module params
   character(LEN=10) :: riemann2d='hlld'   !< 2D Riemann solver
   integer :: iriemann                     !< 1D Riemann solver index
   integer :: iriemann2d                   !< 2D Riemann solver index
-  integer, parameter :: iroe=1            !< Roe solver index
-  integer, parameter :: illf=2            !< Lax-Friedrich solver index
-  integer, parameter :: ihll=3            !< HLL solver index
-  integer, parameter :: ihlld=4           !< HLLD solver index
-  integer, parameter :: iupwind=5         !< Upwind solver index
-  integer, parameter :: iacoustic=6       !< Hydro solver index
-  integer, parameter :: ihllf=7           !< HLLF solver index
-  integer, parameter :: ihlla=8           !< HLLA solver index
   integer  :: slope_type=2                !< slope limiter type for hydro & MHD
   real(dp) :: courant                     !< Courant factor
   logical  :: fargo                       !< Use the FARGO algorithm
-  real(dp), parameter :: smallr=1.d-10    !< Dimensioned small constant
-  real(dp), parameter ::  smallc=1.d-10   !< Dimensioned small constant
 
   ! Model parameters
   integer  :: nx=1              !< number of cells in a subdomain, x-direction
@@ -141,13 +156,6 @@ module params
   real(dp) :: ciso=0.d0         !< isothermal sound speed
   real(dp) :: gamma=5.d0/3.d0   !< ratio of specific heats \f$ \gamma \f$
   logical  :: rhs=.false.       !< .true. if there is a non-zero source term
-  !$acc declare copyin(gamma)
-  !$acc declare copyin(ciso)
-
-  ! Mesh parameters
-  real(dp) :: dx !< resolution in x-direction
-  real(dp) :: dy !< resolution in y-direction
-  real(dp) :: dz !< resolution in z-direction
 
   ! Output parameters
   real(dp) :: dtdump           !< elapsed time between two outputs
@@ -160,7 +168,7 @@ module params
   integer :: nyslice !< MPI domain decomposition: # of process in y direction
   integer :: nzslice !< MPI domain decomposition: # of process in z direction
 
-end module params
+end module input_params
 !===============================================================================
 !> Variables module; variables of the problem
 !===============================================================================

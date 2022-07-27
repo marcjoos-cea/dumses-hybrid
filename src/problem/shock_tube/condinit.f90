@@ -12,6 +12,7 @@
 !===============================================================================
 subroutine condinit
   use params
+  use input_params
   use variables
   implicit none
 

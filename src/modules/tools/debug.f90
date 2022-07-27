@@ -34,6 +34,7 @@ module debugtools
     subroutine write_debug_file(ndump, filename, varname, array &
          , nxarr, nyarr, nzarr)
       use params
+  use input_params
 #if MPI == 1
       use mpi_var
 #endif
@@ -177,6 +178,7 @@ module debugtools
 #if PHDF5 == 1 || HDF5 == 1
     subroutine dump_3d_debug(loc_id, dsetname, array, nxarr, nyarr, nzarr)
       use params
+  use input_params
       use mpi_var
       use hdf5
       implicit none

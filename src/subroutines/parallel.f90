@@ -29,6 +29,7 @@ subroutine init_parallel
   use nccl_var
 #endif
   use params
+  use input_params
   use mpi_var
   implicit none
 
@@ -140,7 +141,7 @@ subroutine init_parallel
      
      print '("         This is DUMSES - OpenMP/MPI hybrid version            ")'
 #endif
-     print '("(c) 2013-2015, CEA. This software is distributed under a joint ")'
+     print '("(c) 2013-2022, CEA. This software is distributed under a joint ")'
      print '(" CeCILL-A and GNU/GPL license.                                 ")'
      print '("===============================================================")'
      print '("     Execution with", I6, " MPI process(es)")', npes
@@ -198,6 +199,7 @@ subroutine grid_structure
   use mpi
 #endif
   use params
+  use input_params
   use mpi_var
   implicit none
 
@@ -264,6 +266,7 @@ subroutine boundary_x
 #endif
   use variables
   use params
+  use input_params
   use mpi_var
   use nccl_var
   implicit none
@@ -498,6 +501,7 @@ subroutine boundary_y
 #endif
   use variables
   use params
+  use input_params
   use mpi_var
   use nccl_var
   implicit none
@@ -602,6 +606,7 @@ subroutine boundary_z
 #endif
   use variables
   use params
+  use input_params
   use mpi_var
   use nccl_var
   implicit none
@@ -697,6 +702,7 @@ end subroutine boundary_z
 subroutine create_comm_plane(comm, direction)
 #if MPI == 1
   use params
+  use input_params
   use mpi_var
   use mpi
   implicit none
@@ -759,6 +765,7 @@ end subroutine create_comm_plane
 subroutine create_comm_line(comm, direction)
 #if MPI == 1
   use params
+  use input_params
   use mpi_var
   use mpi
   implicit none

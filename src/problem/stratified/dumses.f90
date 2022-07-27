@@ -36,6 +36,7 @@
 program dumses
   use variables
   use params
+  use input_params
   use mpi_var
   implicit none
 

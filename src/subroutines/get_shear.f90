@@ -18,6 +18,7 @@
 subroutine get_shear_quant(inner, outer, itime)
 #if MPI == 1
   use params
+  use input_params
   use variables
   use mpi_var
   use mpi
@@ -147,6 +148,7 @@ end subroutine get_shear_quant
 subroutine get_shear_flux(inner, outer, itime)
 #if MPI == 1
   use params
+  use input_params
   use variables
   use mpi_var, only: mype, npes, xposition, yposition, zposition, xleft, xright &
        , yleft, yright, zleft, zright
@@ -325,6 +327,7 @@ end subroutine get_shear_flux
 subroutine get_shear_emf(inner, outer, itime)
 #if MPI == 1
   use params
+  use input_params
   use variables
   use mpi_var, only: mype, npes, xposition, yposition, zposition, xleft, xright &
        , yleft, yright, zleft, zright
@@ -537,6 +540,7 @@ end subroutine get_shear_emf
 subroutine get_shearing_quant_old(inner_quant, outer_quant, deltay)
   use mpi
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -801,6 +805,7 @@ end subroutine get_shearing_quant_old
 subroutine get_shearing_flux_old(inner_quant, outer_quant, deltay)
   use mpi
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -1048,6 +1053,7 @@ end subroutine get_shearing_flux_old
 subroutine get_shearing_emf_old(inner_quant, outer_quant, deltay)
   use mpi
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none

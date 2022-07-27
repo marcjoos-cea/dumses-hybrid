@@ -18,6 +18,7 @@
 subroutine init_param
   use variables
   use params
+  use input_params
   use mpi_var
   implicit none
 
@@ -28,8 +29,6 @@ subroutine init_param
      & , nx, ny, nz, xmin, xmax, ymin, ymax, zmin, zmax, Omega0, ciso, gamma &
      & , nu, eta, rhs, dtdump, dthist, dtspec, io_type, nxslice, nyslice &
      & , nzslice, nxglob, nyglob, nzglob)
-
-  !$acc update device(gamma)
 
   !calculate state vector sizes
   iu1 = 1-nghost; iu2 = nx+nghost
@@ -80,8 +79,8 @@ end subroutine init_param
 subroutine init
   use const
   use variables
-  use params, only: verbose, restart, rhs, iu1, iu2, ju1, ju2, ku1, ku2 &
-       & , nvar, fargo
+  use params, only: iu1, iu2, ju1, ju2, ku1, ku2, nvar
+  use input_params, only: verbose, restart, fargo, rhs
   implicit none
 
   integer :: c0, c1, rate
@@ -306,6 +305,7 @@ end subroutine default_parameters
 !===============================================================================
 subroutine init_solver(riemann, riemann2d, iriemann, iriemann2d)
   use params, only: iroe, illf, ihll, ihlld, iupwind, iacoustic, ihllf, ihlla
+  use input_params
   implicit none
 
   character(LEN=10), intent(in) :: riemann, riemann2d
@@ -349,6 +349,7 @@ end subroutine init_solver
 subroutine allocate_workspace
   use variables
   use params
+  use input_params
   use mpi_var
   implicit none
 
@@ -422,6 +423,7 @@ end subroutine allocate_workspace
 !===============================================================================
 subroutine init_grid
   use params
+  use input_params
   use variables, only: x, y, z, ds, dv
   use mpi_var
 #if OACC == 1

@@ -18,6 +18,7 @@
 !===============================================================================
 subroutine shearing_boundary(itime)
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -205,6 +206,7 @@ end subroutine shearing_boundary
 !===============================================================================
 subroutine shearing_flux(itime)
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -295,6 +297,7 @@ end subroutine shearing_flux
 !===============================================================================
 subroutine shearing_emf(itime)
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -390,6 +393,7 @@ end subroutine shearing_emf
 !===============================================================================
 subroutine shearing_slope(quant, dq)
   use params
+  use input_params
   implicit none
 
   real(dp), dimension(nghost,ju1:ju2,ku1:ku2,nvar+3), intent(in)  :: quant
@@ -507,6 +511,7 @@ end subroutine shearing_slope
 !===============================================================================
 subroutine shearing_boundary_old(itime)
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -700,6 +705,7 @@ end subroutine shearing_boundary_old
 subroutine shearing_flux_old(itime)
   use mpi_var
   use params
+  use input_params
   use variables
   implicit none
 
@@ -798,6 +804,7 @@ end subroutine shearing_flux_old
 subroutine shearing_emf_old(itime)
   use mpi_var
   use params
+  use input_params
   use variables
   implicit none
 
@@ -893,6 +900,7 @@ end subroutine shearing_emf_old
 !===============================================================================
 subroutine shearing_slope_old(quant, dq)
   use params
+  use input_params
   implicit none
 
 #if MPI == 1

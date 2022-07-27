@@ -21,6 +21,7 @@ subroutine compute_dt(dt)
   use mpi_var
 #endif
   use params
+  use input_params
   use variables, only: uin, qin, x, y
   implicit none
 
@@ -146,6 +147,7 @@ end subroutine compute_dt
 !===============================================================================
 subroutine comp_speed(rho, p, v, bn, bt1, bt2, vel)
   use params
+  use input_params
   implicit none
 
   real(dp), intent(in)  :: rho, p, v, bn, bt1, bt2
@@ -175,6 +177,7 @@ end subroutine comp_speed
 !===============================================================================
 subroutine comp_speed_fast(rho, p, bn, bt1, bt2, vel)
   use params
+  use input_params
   implicit none
 
   real(dp), intent(in)  :: rho, p, bn, bt1, bt2
@@ -201,6 +204,7 @@ end subroutine comp_speed_fast
 !===============================================================================
 subroutine comp_alfven_speed(rho, bn, vel)
   use params
+  use input_params
   implicit none
 
   real(dp), intent(in)  :: rho, bn
@@ -227,6 +231,7 @@ end subroutine comp_alfven_speed
 !===============================================================================
 subroutine comp_mhd_flux(rho, p, vn, vt1, vt2, bn, bt1, bt2, consvar, flux)
   use params
+  use input_params
   implicit none
 
   real(dp), intent(in) :: rho, p, vn, vt1, vt2, bn, bt1, bt2
@@ -266,6 +271,7 @@ end subroutine comp_mhd_flux
 !===============================================================================
 subroutine dissipation
   use params
+  use input_params
   use variables
   implicit none
 
@@ -287,6 +293,7 @@ end subroutine dissipation
 !===============================================================================
 subroutine resistivity
   use params
+  use input_params
   use variables
   implicit none
 
@@ -457,6 +464,7 @@ end subroutine resistivity
 !===============================================================================
 subroutine viscosity
   use params
+  use input_params
   use variables
   implicit none
 

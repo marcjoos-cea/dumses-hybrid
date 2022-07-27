@@ -12,6 +12,7 @@
 !===============================================================================
 subroutine source_term
   use params
+  use input_params
   use mpi_var
   use variables
   use stratified
@@ -128,6 +129,7 @@ end subroutine source_term
 !===============================================================================
 subroutine checkLowBeta(qin, dq, dbf, flagCell)
   use params
+  use input_params
   implicit none
 
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,1:nvar       ), intent(in) :: qin 
@@ -183,6 +185,7 @@ end subroutine checkLowBeta
 !===============================================================================
 subroutine gravity_predictor(v, igrav, jgrav, kgrav)
   use params
+  use input_params
   use variables
   implicit none
 

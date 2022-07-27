@@ -17,6 +17,7 @@
 !===============================================================================
 subroutine boundary
   use params
+  use input_params
   use variables
   use mpi_var
   implicit none
@@ -94,6 +95,7 @@ end subroutine boundary
 !===============================================================================
 subroutine innerx_boundary
   use params
+  use input_params
   use variables
   implicit none
 
@@ -134,6 +136,7 @@ end subroutine innerx_boundary
 !===============================================================================
 subroutine outerx_boundary
   use params
+  use input_params
   use variables
   implicit none
 
@@ -175,6 +178,7 @@ end subroutine outerx_boundary
 !===============================================================================
 subroutine innery_boundary
   use params
+  use input_params
   use variables
   implicit none
 
@@ -215,6 +219,7 @@ end subroutine innery_boundary
 !===============================================================================
 subroutine outery_boundary
   use params
+  use input_params
   use variables
   implicit none
 
@@ -257,6 +262,7 @@ end subroutine outery_boundary
 !===============================================================================
 subroutine innerz_boundary
   use params
+  use input_params
   use variables
   implicit none
 
@@ -297,6 +303,7 @@ end subroutine innerz_boundary
 !===============================================================================
 subroutine outerz_boundary
   use params
+  use input_params
   use variables
   implicit none
 

@@ -16,6 +16,7 @@
 !===============================================================================
 subroutine user_restart
   use params
+  use input_params
   implicit none
 
   return

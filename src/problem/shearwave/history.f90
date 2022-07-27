@@ -17,6 +17,7 @@
 !===============================================================================
 subroutine history
   use params
+  use input_params
   use mpi_var
   use variables
 #if MPI == 1

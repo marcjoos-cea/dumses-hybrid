@@ -52,13 +52,16 @@ end subroutine solver_magnetic_utils
 !===============================================================================
 !> 2D Riemann solver to compute EMF at cell edges
 !===============================================================================
-subroutine riemann_solver_magnetic(qRT, qRB, qLT, qLB, emf, idim)
+subroutine riemann_solver_magnetic(qRT, qRB, qLT, qLB, emf, gamma, ciso, omega0, fargo, verbose, iriemann2d, idim)
   use variables, only: x, dt
   implicit none
 
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,3), intent(in) :: qRT, qRB
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,3), intent(in) :: qLT, qLB
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2), intent(out)       :: emf
+  real(dp), intent(in) :: gamma, ciso, omega0
+  logical, intent(in) :: fargo, verbose
+  integer, intent(in) :: iriemann2d
   integer, intent(in) :: idim
 
   ! local variables
@@ -180,15 +183,15 @@ subroutine riemann_solver_magnetic(qRT, qRB, qLT, qLB, emf, idim)
            
 
            if (iriemann2d == illf) then
-              call llf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+              call llf(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
            else if (iriemann2d == ihlld) then 
-              call hlld(qLL, qRL, qLR, qRR, dt, emf_tmp)
+              call hlld(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
            else if (iriemann2d == iupwind) then
-              call upwind(qLL, qRL, qLR, qRR, dt, emf_tmp)
+              call upwind(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
            !else if (iriemann2d == ihllf) then
-           !   call hllf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+           !   call hllf(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
            else if (iriemann2d == ihlla) then
-              call hlla(qLL, qRL, qLR, qRR, dt, emf_tmp)
+              call hlla(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
            !else if (iriemann2d == iathena_roe2d) then
            !   call athena_roe2d(qLL, qRL, qLR, qRR, dt, emf_tmp)
            !else if (iriemann2d == ilax_friedrich) then
@@ -235,13 +238,14 @@ end subroutine riemann_solver_magnetic
 !===============================================================================
 !> 2D Lax-Friedrich Riemann (LLF) solver
 !===============================================================================
-subroutine llf(qLL, qRL, qLR, qRR, dt, emf_tmp)
+subroutine llf(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
   !$acc routine seq
   implicit none
 
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
   real(dp), intent(in) :: dt
   real(dp), intent(out) :: emf_tmp
+  real(dp), intent(in) :: gamma, ciso
 
   real(dp) :: E, rl, pl, ul, al, bl, cl, rr, pr, ur, ar, br, cr, ploc, proc
   real(dp) :: c2, b2, d2, cf, vleft, vright, vel_info
@@ -355,13 +359,14 @@ end subroutine llf
 !===============================================================================
 !> 2D HLLD Riemann solver
 !===============================================================================
-subroutine hlld(qLL, qRL, qLR, qRR, dt, emf_tmp)
+subroutine hlld(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
   !$acc routine seq
   implicit none
 
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
   real(dp), intent(in) :: dt
   real(dp), intent(out) :: emf_tmp
+  real(dp), intent(in) :: gamma, ciso
 
   real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB, E, c2, b2, d2
   real(dp) :: cLLx, cRLx, cLRx, cRRx, cLLy, cRLy, cLRy, cRRy
@@ -546,7 +551,7 @@ end subroutine hlld
 !===============================================================================
 !> 2D Upwind Riemann solver
 !===============================================================================
-subroutine upwind(qLL, qRL, qLR, qRR, dt, emf_tmp)
+subroutine upwind(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
   !$acc routine seq
   implicit none
 
@@ -554,6 +559,7 @@ subroutine upwind(qLL, qRL, qLR, qRR, dt, emf_tmp)
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
   real(dp), intent(in) :: dt
   real(dp), intent(out) :: emf_tmp
+  real(dp), intent(in) :: gamma, ciso
 
   real(dp) :: E, ul, ur, bl, br, vel_info, flux_x, flux_y
 
@@ -679,12 +685,13 @@ end subroutine upwind
 !===============================================================================
 !> 2D HLLA Riemann solver
 !===============================================================================
-subroutine hlla(qLL, qRL, qLR, qRR, dt, emf_tmp)
+subroutine hlla(qLL, qRL, qLR, qRR, dt, emf_tmp, gamma, ciso)
   !$acc routine seq
   implicit none
 
   real(dp), dimension(nvar), intent(inout) :: qLL, qRL, qLR, qRR
   real(dp), intent(in), value :: dt
+  real(dp), intent(in) :: gamma, ciso
   real(dp), intent(out) :: emf_tmp
 
   real(dp) :: SL, SR, SB, ST, SAL, SAR, SAT, SAB 

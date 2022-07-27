@@ -19,6 +19,7 @@
 !===============================================================================
 subroutine primitive(dt)
   use params
+  use input_params
   use variables, only: uin, qin, x
   use oacc_params
   implicit none
@@ -102,6 +103,7 @@ end subroutine primitive
 !===============================================================================
 subroutine godunov
   use params
+  use input_params
   use variables
   use solver
   use solver_magnetic
@@ -150,20 +152,20 @@ subroutine godunov
 
   !$py start_timing Riemann
   !!$py call_solver riemann (qm, qp, fgodunov, fgodunov_pre)
-  call riemann_solver(qm, qp, fgodunov, fgodunov_pre)
+  call riemann_solver(qm, qp, fgodunov, fgodunov_pre, gamma, ciso, omega0, fargo, verbose, iriemann)
   !$py end_timing Riemann
 
   !!$acc data create(emfx, emfy, emfz)
   !$py start_timing Riemann magnetic
 #if NDIM > 1
   !!$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfz, 3)
-  call riemann_solver_magnetic (qRT, qRB, qLT, qLB, emfz, 3)
+  call riemann_solver_magnetic (qRT, qRB, qLT, qLB, emfz, gamma, ciso, omega0, fargo, verbose, iriemann2d, 3)
 #endif
 #if NDIM == 3
   !!$py call_solver riemann_magnetic (qRT, qLT, qRB, qLB, emfy, 2)
   !!$py call_solver riemann_magnetic (qRT, qRB, qLT, qLB, emfx, 1)
-  call riemann_solver_magnetic (qRT, qLT, qRB, qLB, emfy, 2)
-  call riemann_solver_magnetic (qRT, qRB, qLT, qLB, emfx, 1)
+  call riemann_solver_magnetic (qRT, qLT, qRB, qLB, emfy, gamma, ciso, omega0, fargo, verbose, iriemann2d, 2)
+  call riemann_solver_magnetic (qRT, qRB, qLT, qLB, emfx, gamma, ciso, omega0, fargo, verbose, iriemann2d, 1)
 #endif
   !$py end_timing Riemann magnetic
 
@@ -190,6 +192,7 @@ end subroutine godunov
 !===============================================================================
 subroutine fc_magnetic(bfc)
   use params
+  use input_params
   use variables, only: uin
   implicit none
 
@@ -249,6 +252,7 @@ end subroutine fc_magnetic
 !===============================================================================
 subroutine slope(bfc, dq, dbfc)
   use params
+  use input_params
   use variables, only: qin
   use oacc_params
   implicit none
@@ -656,6 +660,7 @@ end subroutine slope
 !===============================================================================
 subroutine trace1d(dq, qm, qp)
   use params
+  use input_params
   use variables, only: qin, dt, x
   use oacc_params
   implicit none
@@ -804,6 +809,7 @@ end subroutine trace1d
 !===============================================================================
 subroutine trace2d(bfc, dq, dbfc, qm, qp, qRT, qRB, qLT, qLB)
   use params
+  use input_params
   use variables, only: qin, dt, x, y, Ez
   use oacc_params
   implicit none
@@ -1142,6 +1148,7 @@ end subroutine trace2d
 !===============================================================================
 subroutine trace3d(bfc, dq, dbfc, qm, qp, qRT, qRB, qLT, qLB)
   use params
+  use input_params
   use variables, only: qin, dt, x, y, Ex, Ey, Ez
   use oacc_params
   implicit none
@@ -1708,6 +1715,7 @@ end subroutine trace3d
 !===============================================================================
 subroutine compflux(fgodunov)
   use params
+  use input_params
   use variables, only: flux, dt, ds
   implicit none
 
@@ -1755,6 +1763,7 @@ end subroutine compflux
 !===============================================================================
 subroutine update(fgodunov_pre)
   use params
+  use input_params
   use variables, only: uin, flux, dt, x, y, dv
   use oacc_params
   implicit none
@@ -1930,6 +1939,7 @@ end subroutine update
 !===============================================================================
 subroutine constrained_transport
   use params
+  use input_params
   use variables
   implicit none
 

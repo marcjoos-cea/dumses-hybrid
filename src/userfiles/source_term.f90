@@ -16,6 +16,7 @@
 !===============================================================================
 subroutine source_term
   use params
+  use input_params
   use variables
   implicit none
 
@@ -46,6 +47,7 @@ end subroutine source_term
 !===============================================================================
 subroutine gravity_predictor(v, igrav, jgrav, kgrav)
   use params
+  use input_params
   use variables
   implicit none
 

@@ -18,6 +18,7 @@
 !===============================================================================
 subroutine history
   use params
+  use input_params
   use mpi_var
   use variables
   implicit none
@@ -192,6 +193,7 @@ end subroutine history
 subroutine vol_average(quant, nquant)
 #if MPI == 1
   use params
+  use input_params
   use mpi
   implicit none
 
@@ -216,6 +218,7 @@ subroutine compute_yz_mean(quant, mean_quant, nquant)
   use mpi_var
 #endif
   use params
+  use input_params
 
   integer, intent(in) :: nquant
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nquant), intent(in) :: quant
@@ -269,6 +272,7 @@ subroutine compute_xz_mean(quant, mean_quant, nquant)
   use mpi_var
 #endif
   use params
+  use input_params
 
   integer, intent(in) :: nquant
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nquant), intent(in) :: quant
@@ -322,6 +326,7 @@ subroutine compute_x_mean(quant, mean_quant, nquant)
   use mpi_var
 #endif
   use params
+  use input_params
   implicit none
 
   integer, intent(in) :: nquant
@@ -377,6 +382,7 @@ subroutine compute_y_mean(quant, mean_quant, nquant)
   use mpi_var
 #endif
   use params
+  use input_params
   implicit none
 
   integer, intent(in) :: nquant
@@ -432,6 +438,7 @@ subroutine compute_z_mean(quant, mean_quant, nquant)
   use mpi_var
 #endif
   use params
+  use input_params
   implicit none
 
   integer, intent(in) :: nquant

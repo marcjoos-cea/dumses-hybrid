@@ -16,6 +16,7 @@
 !===============================================================================
 subroutine fargo_update
   use params
+  use input_params
   use variables
   implicit none
 
@@ -126,6 +127,7 @@ end subroutine fargo_update
 !===============================================================================
 subroutine get_emfx(duin)
   use params
+  use input_params
   use variables
   implicit none
 
@@ -183,6 +185,7 @@ end subroutine get_emfx
 !===============================================================================
 subroutine get_emfz(duin)
   use params
+  use input_params
   use variables
   implicit none
 
@@ -240,6 +243,7 @@ end subroutine get_emfz
 !===============================================================================
 subroutine uin_slope(duin)
   use params
+  use input_params
   use variables
   implicit none
 

@@ -16,6 +16,7 @@
 !===============================================================================
 subroutine user_init
   use params
+  use input_params
   implicit none
 
   return
@@ -26,6 +27,7 @@ end subroutine user_init
 subroutine get_eta(etaval, r)
   !!$acc routine vector
   use params
+  use input_params
   implicit none
   
   real(dp) :: etaval, r

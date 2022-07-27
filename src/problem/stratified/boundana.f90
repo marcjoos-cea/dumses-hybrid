@@ -17,6 +17,7 @@
 !===============================================================================
 subroutine xinner_ana
   use params
+  use input_params
   use variables
   implicit none
 
@@ -41,6 +42,7 @@ end subroutine xinner_ana
 !===============================================================================
 subroutine xouter_ana
   use params
+  use input_params
   use variables
   implicit none
 
@@ -66,6 +68,7 @@ end subroutine xouter_ana
 subroutine yinner_ana
 #if NDIM > 1
   use params
+  use input_params
   use variables
   implicit none
 
@@ -92,6 +95,7 @@ end subroutine yinner_ana
 subroutine youter_ana
 #if NDIM > 1
   use params
+  use input_params
   use variables
   implicit none
 
@@ -117,6 +121,7 @@ end subroutine youter_ana
 subroutine zinner_ana
 #if NDIM > 1
   use params
+  use input_params
   use variables
   use stratified
   implicit none
@@ -262,6 +267,7 @@ end subroutine zinner_ana
 subroutine zouter_ana
 #if NDIM > 1
   use params
+  use input_params
   use const
   use variables
   use stratified

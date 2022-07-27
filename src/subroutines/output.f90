@@ -29,6 +29,7 @@ subroutine output
   use mpi
 #endif
   use params
+  use input_params
   use variables
   use mpi_var
   use file

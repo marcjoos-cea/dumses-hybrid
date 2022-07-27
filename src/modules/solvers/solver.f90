@@ -62,7 +62,7 @@ end subroutine solver_utils
 !! in \c riemann variable
 !<
 !===============================================================================
-subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
+subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre, gamma, ciso, omega0, fargo, verbose, iriemann)
   use variables, only: dt, ds, dv, x, y, rgstar, ugstar, vgstar, wgstar &
        & , bgstar, cgstar, pgstar
   implicit none
@@ -71,6 +71,9 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim), intent(in) :: qp 
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,nvar,ndim),intent(out) :: fgodunov
   real(dp), dimension(iu1:iu2,ju1:ju2,ku1:ku2,ndim), intent(out) :: fgodunov_pre
+  real(dp), intent(in) :: gamma, ciso, omega0
+  logical, intent(in) :: verbose, fargo
+  integer, intent(in) :: iriemann
   real(dp) :: trgstar, tugstar, tvgstar, twgstar
   real(dp) :: tbgstar, tcgstar, tpgstar
   real(dp), dimension(nvar) :: tfgodunov
@@ -157,16 +160,16 @@ subroutine riemann_solver(qm, qp, fgodunov, fgodunov_pre)
 
 
               if (iriemann == ihlld) then
-                 call hlld(ql, qr, tfgodunov, rgstar(i,j,k), ugstar(i,j,k), vgstar(i,j,k), wgstar(i,j,k), bgstar(i,j,k), cgstar(i,j,k), pgstar(i,j,k))
+                 call hlld(ql, qr, tfgodunov, rgstar(i,j,k), ugstar(i,j,k), vgstar(i,j,k), wgstar(i,j,k), bgstar(i,j,k), cgstar(i,j,k), pgstar(i,j,k), gamma, ciso)
                  fgodunov(i,j,k,:,idim) = tfgodunov
               else if (iriemann == ihll) then
-                 call hll(ql, qr, tfgodunov)
+                 call hll(ql, qr, tfgodunov, gamma, ciso)
                  fgodunov(i,j,k,:,idim) = tfgodunov
               else if (iriemann == illf) then
-                  call llf(ql, qr, tfgodunov)
+                  call llf(ql, qr, tfgodunov, gamma, ciso)
                   fgodunov(i,j,k,:,idim) = tfgodunov
               else if (iriemann == iupwind) then
-                  call upwind(ql, qr, tfgodunov)
+                  call upwind(ql, qr, tfgodunov, gamma, ciso)
                   fgodunov(i,j,k,:,idim) = tfgodunov
               !else if (iriemann == iacoustic) then
               !    call acoustic(ql, qr, tfgodunov)
@@ -387,7 +390,7 @@ end subroutine riemann_solver
 !===============================================================================
 !> Lax-Friedrich (LLF) Riemann solver
 !===============================================================================
-subroutine llf(ql, qr, fgodunov)
+subroutine llf(ql, qr, fgodunov, gamma, ciso)
   !$acc routine seq
   implicit none
 
@@ -400,6 +403,7 @@ subroutine llf(ql, qr, fgodunov)
   
   real(dp), dimension(8), intent(in) :: ql, qr
   real(dp), dimension(8), intent(out) :: fgodunov
+  real(dp), intent(in) :: gamma, ciso
   real(dp) :: Emag, Etot
 
   call solver_utils(ql, qr)
@@ -497,7 +501,7 @@ end subroutine llf
 !===============================================================================
 !> HLL Riemann solver
 !===============================================================================
-subroutine hll(ql, qr, fgodunov)
+subroutine hll(ql, qr, fgodunov, gamma, ciso)
   !$acc routine seq
   implicit none
   
@@ -510,6 +514,7 @@ subroutine hll(ql, qr, fgodunov)
   
   real(dp), dimension(8), intent(in) :: ql, qr
   real(dp), dimension(8), intent(out) :: fgodunov
+  real(dp), intent(in) :: gamma, ciso
   real(dp) :: Emag, Etot
 
   
@@ -610,7 +615,7 @@ end subroutine hll
 !===============================================================================
 !> HLLD Riemann solver
 !===============================================================================
-subroutine hlld(ql, qr, fgodunov, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar)
+subroutine hlld(ql, qr, fgodunov, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar, pgstar, gamma, ciso)
   !$acc routine seq
   implicit none
   
@@ -618,6 +623,7 @@ subroutine hlld(ql, qr, fgodunov, rgstar, ugstar, vgstar, wgstar, bgstar, cgstar
   real(dp), dimension(8), intent(out) :: fgodunov
   real(dp), intent(out) :: rgstar, ugstar, vgstar, wgstar
   real(dp), intent(out) :: bgstar, cgstar, pgstar
+  real(dp), intent(in) :: gamma, ciso
   
   real(dp) :: ro, uo, vo, wo, bo, co, ptoto, pressure
     
@@ -833,7 +839,7 @@ end subroutine hlld
 !===============================================================================
 !> Updwind Riemann solver
 !===============================================================================
-subroutine upwind(ql, qr, fgodunov)
+subroutine upwind(ql, qr, fgodunov, gamma, ciso)
   !$acc routine seq
   implicit none
 
@@ -845,6 +851,7 @@ subroutine upwind(ql, qr, fgodunov)
 
   real(dp), dimension(8), intent(in) :: ql, qr
   real(dp), dimension(8), intent(out) :: fgodunov
+  real(dp), intent(in) :: gamma, ciso
   real(dp) :: Emag, Etot
 
   call solver_utils(ql, qr)
@@ -931,7 +938,7 @@ end subroutine upwind
 !===============================================================================
 !> Acoustic Riemann solver
 !===============================================================================
-subroutine acoustic(ql, qr, fgodunov)
+subroutine acoustic(ql, qr, fgodunov, gamma, ciso)
   !$acc routine seq
   implicit none
 
@@ -942,6 +949,7 @@ subroutine acoustic(ql, qr, fgodunov)
   
   real(dp), dimension(8), intent(in) :: ql, qr
   real(dp), dimension(8), intent(out) :: fgodunov
+  real(dp), intent(in) :: gamma, ciso
   real(dp) :: Emag, Etot
   real(dp) :: bn_mean
   real(dp) :: ro, uo, wo, co

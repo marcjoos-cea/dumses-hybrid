@@ -74,6 +74,7 @@ contains
 !===============================================================================
   subroutine get_3d_real(loc_id, dsetname, array)
     use params
+  use input_params
     use mpi_var
     use hdf5
     implicit none

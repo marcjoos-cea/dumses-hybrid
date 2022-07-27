@@ -17,6 +17,7 @@
 !===============================================================================
 subroutine user_init
   use params
+  use input_params
   use variables
   use stratified
   implicit none
