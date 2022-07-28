@@ -305,7 +305,6 @@ end subroutine default_parameters
 !===============================================================================
 subroutine init_solver(riemann, riemann2d, iriemann, iriemann2d)
   use params, only: iroe, illf, ihll, ihlld, iupwind, iacoustic, ihllf, ihlla
-  use input_params
   implicit none
 
   character(LEN=10), intent(in) :: riemann, riemann2d
