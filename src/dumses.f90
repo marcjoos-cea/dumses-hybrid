@@ -113,7 +113,7 @@ program dumses
            call system_clock(count=ti1, count_rate=rate)
            elptime = real(ti1 - ti0, kind=8)/real(rate, kind=8)
            print '("CPU time, Elapsed time, cell update: ", 1PE12.6E2, " s, ", 1PE12.6E2, " s, ", 1PE12.6E2, " cells/s")', &
-                cputime, elptime, (nxglob*nyglob*nzglob)/elptime
+                cputime, elptime, (nxglob/elptime)*nyglob*nzglob
         endif
      endif
   
