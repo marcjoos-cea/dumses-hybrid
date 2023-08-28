@@ -4,6 +4,15 @@ AC_CONFIG_SRCDIR([src/])
 AC_LANG([Fortran])
 AC_CONFIG_MACRO_DIR([m4])
 
+dnl Small macro to print out a nice, pretty section title.
+define(SECTION_TITLE,
+[
+        echo >& AS_MESSAGE_FD
+        echo '   $1   ' | sed -e's/./-/g' >&AS_MESSAGE_FD
+        echo '   $1' >& AS_MESSAGE_FD
+        echo '   $1   ' | sed -e's/./-/g' >&AS_MESSAGE_FD
+])
+
 AM_INIT_AUTOMAKE([-Wall] [subdir-objects])
 LT_INIT
 
@@ -121,6 +130,7 @@ dnl preprocessing variables defined in @DEFS@
 dnl Check for OpenACC; define:
 dnl  - OACC for preprocessing
 dnl  - ENABLE_OPENACC for Makefiles
+SECTION_TITLE([OpenACC])
 AC_SUBST([OACC], [0])
 AS_IF([test "x$enable_openacc" != xno], [
   AC_LANG_PUSH([C])
@@ -129,10 +139,11 @@ AS_IF([test "x$enable_openacc" != xno], [
   AC_LANG_PUSH([Fortran])
   AC_SUBST([OACC], [1])
 ])
-AM_CONDITIONAL([ENABLE_OPENACC], [test x$HAVE_OPENACC = x1])
+AM_CONDITIONAL([ENABLE_OPENACC], [test "x$HAVE_OPENACC" = x1])
 
 dnl Check for OpenMP; define:
 dnl  - ENABLE_OPENMP for Makefiles
+SECTION_TITLE([OpenMP])
 AS_IF([test x$enable_openmp != xno], [
   AC_OPENMP
 ])
@@ -147,6 +158,7 @@ AM_CONDITIONAL([ENABLE_OPENMP], [test "x$ENABLE_OPENMP" = x1])
 dnl Check for MPI; define:
 dnl  - MPI for preprocessing
 dnl  - redefine FC compiler
+SECTION_TITLE([MPI])
 AC_SUBST([MPI], [0])
 AS_IF([test x$enable_mpi != xno], [
   LX_FIND_MPI()
@@ -161,6 +173,7 @@ AS_IF([test x$enable_mpi != xno], [
 dnl Check for HDF5
 dnl  - first, check if we have parallel HDF5 library
 dnl  - if it fails, check if we have serial HDF5 library
+SECTION_TITLE([(Parallel)HDF5])
 AC_SUBST([HDF5], [0])
 AC_SUBST([PHDF5], [0])
 AS_IF([test x$with_hdf5 != x], [
@@ -177,22 +190,27 @@ AS_IF([test x$with_hdf5 != x], [
 	       [AC_SUBST([PHDF5], [1])])
   ])
 ])
+AM_CONDITIONAL(ENABLE_HDF5, [test "x$HDF5_VERSION" != x])
 
 dnl Check for Parallel NetCDF
+SECTION_TITLE([Parallel NetCDF])
 AC_SUBST([PNCDF], [0])
 AS_IF([test x$with_pnetcdf != x], [
   AX_LIB_PNETCDF()
   AS_IF([test x$with_pnetcdf_fortran = xyes],
         [AC_SUBST([PNCDF], [1])])
 ])
+AM_CONDITIONAL([ENABLE_PNETCDF], [test "x$PNETCDF_VERSION" != x])
 
 dnl Check for NCCL
+SECTION_TITLE([NCCL])
 AC_SUBST([NCCL], [0])
 AS_IF([test x$with_nccl != x], [
   AX_LIB_NCCL()
   AS_IF([test x$with_nccl = xyes],
     	[AC_SUBST([NCCL], [1])])
 ])
+AM_CONDITIONAL([ENABLE_NCCL], [test "x$NCCL_VERSION" != x])
 
 dnl TODO: need to check if mpi is cuda-aware
 dnl  - for openmpi: use ompi_info ?
@@ -201,6 +219,7 @@ dnl For now we suppose that if MPI & OpenACC are defined
 dnl one will want to use CUDA-aware MPI
 
 dnl Check if CUDA-aware MPI communications are activated on GPU
+SECTION_TITLE([CUDA-aware MPI])
 AC_SUBST([CUDA_AWARE_MPI], [0])
 AS_IF([test x$with_cuda_aware_mpi != x], [
   AS_IF([test "x$MPIFC" != x], [

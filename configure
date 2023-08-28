@@ -650,6 +650,8 @@ GEOM
 ISO
 NDIM
 CUDA_AWARE_MPI
+ENABLE_NCCL_FALSE
+ENABLE_NCCL_TRUE
 NCCL_FLIBS
 NCCL_FFLAGS
 NCCL_LIBS
@@ -657,6 +659,8 @@ NCCL_LDFLAGS
 NCCL_CFLAGS
 NCCL_VERSION
 NCCL
+ENABLE_PNETCDF_FALSE
+ENABLE_PNETCDF_TRUE
 PNETCDF_FLIBS
 PNETCDF_FFLAGS
 PNETCDF_LIBS
@@ -666,6 +670,8 @@ PNETCDF_CC
 PNETCDF_VERSION
 PNETCDFCONFIG
 PNCDF
+ENABLE_HDF5_FALSE
+ENABLE_HDF5_TRUE
 HDF5_TYPE
 HDF5_FLIBS
 HDF5_FFLAGS
@@ -2411,6 +2417,8 @@ ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+
+
 
 
 
@@ -15979,6 +15987,12 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
 
+
+        echo >& 6
+        echo '   OpenACC   ' | sed -e's/./-/g' >&6
+        echo '   OpenACC' >& 6
+        echo '   OpenACC   ' | sed -e's/./-/g' >&6
+
 OACC=0
 
 if test "x$enable_openacc" != xno; then :
@@ -16012,7 +16026,7 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
 fi
- if test x$HAVE_OPENACC = x1; then
+ if test "x$HAVE_OPENACC" = x1; then
   ENABLE_OPENACC_TRUE=
   ENABLE_OPENACC_FALSE='#'
 else
@@ -16020,6 +16034,12 @@ else
   ENABLE_OPENACC_FALSE=
 fi
 
+
+
+        echo >& 6
+        echo '   OpenMP   ' | sed -e's/./-/g' >&6
+        echo '   OpenMP' >& 6
+        echo '   OpenMP   ' | sed -e's/./-/g' >&6
 
 if test x$enable_openmp != xno; then :
 
@@ -16111,6 +16131,12 @@ else
   ENABLE_OPENMP_FALSE=
 fi
 
+
+
+        echo >& 6
+        echo '   MPI   ' | sed -e's/./-/g' >&6
+        echo '   MPI' >& 6
+        echo '   MPI   ' | sed -e's/./-/g' >&6
 
 MPI=0
 
@@ -16424,6 +16450,12 @@ fi
 fi
 
 fi
+
+
+        echo >& 6
+        echo '   (Parallel)HDF5   ' | sed -e's/./-/g' >&6
+        echo '   (Parallel)HDF5' >& 6
+        echo '   (Parallel)HDF5   ' | sed -e's/./-/g' >&6
 
 HDF5=0
 
@@ -17128,6 +17160,20 @@ fi
 fi
 
 fi
+ if test "x$HDF5_VERSION" != x; then
+  ENABLE_HDF5_TRUE=
+  ENABLE_HDF5_FALSE='#'
+else
+  ENABLE_HDF5_TRUE='#'
+  ENABLE_HDF5_FALSE=
+fi
+
+
+
+        echo >& 6
+        echo '   Parallel NetCDF   ' | sed -e's/./-/g' >&6
+        echo '   Parallel NetCDF' >& 6
+        echo '   Parallel NetCDF   ' | sed -e's/./-/g' >&6
 
 PNCDF=0
 
@@ -17370,6 +17416,20 @@ fi
 fi
 
 fi
+ if test "x$PNETCDF_VERSION" != x; then
+  ENABLE_PNETCDF_TRUE=
+  ENABLE_PNETCDF_FALSE='#'
+else
+  ENABLE_PNETCDF_TRUE='#'
+  ENABLE_PNETCDF_FALSE=
+fi
+
+
+
+        echo >& 6
+        echo '   NCCL   ' | sed -e's/./-/g' >&6
+        echo '   NCCL' >& 6
+        echo '   NCCL   ' | sed -e's/./-/g' >&6
 
 NCCL=0
 
@@ -17632,7 +17692,21 @@ fi
 fi
 
 fi
+ if test "x$NCCL_VERSION" != x; then
+  ENABLE_NCCL_TRUE=
+  ENABLE_NCCL_FALSE='#'
+else
+  ENABLE_NCCL_TRUE='#'
+  ENABLE_NCCL_FALSE=
+fi
 
+
+
+
+        echo >& 6
+        echo '   CUDA-aware MPI   ' | sed -e's/./-/g' >&6
+        echo '   CUDA-aware MPI' >& 6
+        echo '   CUDA-aware MPI   ' | sed -e's/./-/g' >&6
 
 CUDA_AWARE_MPI=0
 
@@ -17976,6 +18050,18 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_OPENMP_TRUE}" && test -z "${ENABLE_OPENMP_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_OPENMP\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_HDF5_TRUE}" && test -z "${ENABLE_HDF5_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_HDF5\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_PNETCDF_TRUE}" && test -z "${ENABLE_PNETCDF_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_PNETCDF\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_NCCL_TRUE}" && test -z "${ENABLE_NCCL_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_NCCL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
